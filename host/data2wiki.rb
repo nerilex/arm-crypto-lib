@@ -111,9 +111,9 @@ def process_hashfunction(fin, name, impl)
     stack = 0
   end  
   size = get_size_string(impl, name)
-  printf("| %20s || %3s || %3s || %6d || %7d || %7d || %7d || %7d ||" +
+  printf("| %20s || %6s || %3s || %6d || %7d || %7d || %7d || %7d ||" +
          " %7d || %7d || %9.2f || %7d || || || \n|-\n" , 
-        name, $lang, $lang, size, ctxsize, stack, hashsize, blocksize, 
+        name, $variant, $lang, size, ctxsize, stack, hashsize, blocksize, 
 	    inittime, nextblocktime, nextblocktime.to_f/(blocksize/8),
 		lastblocktime+convtime)
 end
@@ -125,9 +125,16 @@ $handlers["hashfunction"] = 1 #process_hashfunction
 
 def process_file(fname)
   fin = File.open(fname, "r")
-  $lang = "asm"
-  $lang = "C" if fname.match(/_c.txt$/)
   impl = fname.match(/([^.]*).txt$/)[1]
+  $lang = "asm"
+  $lang = "C" if impl.match(/^[^_]*_[cC]/)
+  $variant = $lang
+  if m=impl.match(/_([^_]*)$/)
+    $variant = m[1]
+  end
+  if $variant == 'c'
+    $variant = 'C'
+  end
   begin
     begin
 	  if fin.eof()
@@ -141,7 +148,7 @@ def process_file(fname)
     type = m[1]
     if $handlers[type] != 0
     #  handlers[type](fin, name)
-    #  puts "DBG: process "+'-'+name+'-'+impl
+    #  puts "DBG: process "fname+'-'+name+'-'+impl
       process_hashfunction(fin, name, impl)
     else
       printf("ERROR: unsupported type: %s !\n", type)
