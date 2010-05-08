@@ -204,15 +204,9 @@ void bmw_small_f1(uint32_t* q, const void* m, const void* h){
 
 static
 void bmw_small_f2(uint32_t* h, uint32_t* q, const uint32_t* m){
-	uint32_t xl=0, xh;
-	uint8_t i;
-	for(i=16;i<24;++i){
-		xl ^= q[i];
-	}
-	xh = xl;
-	for(i=24;i<32;++i){
-		xh ^= q[i];
-	}
+	uint32_t xl, xh;
+	xl =      q[16] ^ q[17] ^ q[18] ^ q[19] ^ q[20] ^ q[21] ^ q[22] ^ q[23];
+	xh = xl ^ q[24] ^ q[25] ^ q[26] ^ q[27] ^ q[28] ^ q[29] ^ q[30] ^ q[31];
 #if DEBUG
 	cli_putstr("\r\n XL = ");
 	cli_hexdump_rev(&xl, 4);
@@ -237,7 +231,6 @@ void bmw_small_f2(uint32_t* h, uint32_t* q, const uint32_t* m){
 	h[13] = ROTL32(h[1], 14) + (xh ^ q[29] ^ m[13]) + (SHR32(xl, 4) ^ q[20] ^ q[13]);
 	h[14] = ROTL32(h[2], 15) + (xh ^ q[30] ^ m[14]) + (SHR32(xl, 7) ^ q[21] ^ q[14]);
 	h[15] = ROTL32(h[3], 16) + (xh ^ q[31] ^ m[15]) + (SHR32(xl, 2) ^ q[22] ^ q[15]);
-
 }
 
 void bmw_small_nextBlock(bmw_small_ctx_t* ctx, const void* block){
