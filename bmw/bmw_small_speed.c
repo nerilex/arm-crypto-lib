@@ -203,7 +203,7 @@ void bmw_small_f1(uint32_t* q, const void* m, const void* h){
 }
 
 static
-void bmw_small_f2(uint32_t* h, uint32_t* q, const void* m){
+void bmw_small_f2(uint32_t* h, uint32_t* q, const uint32_t* m){
 	uint32_t xl=0, xh;
 	uint8_t i;
 	for(i=16;i<24;++i){
@@ -219,45 +219,25 @@ void bmw_small_f2(uint32_t* h, uint32_t* q, const void* m){
 	cli_putstr("\r\n XH = ");
 	cli_hexdump_rev(&xh, 4);
 #endif
-	memcpy(h, m, 16*4);
-	h[0] ^= SHL32(xh, 5) ^ SHR32(q[16], 5);
-	h[1] ^= SHR32(xh, 7) ^ SHL32(q[17], 8);
-	h[2] ^= SHR32(xh, 5) ^ SHL32(q[18], 5);
-	h[3] ^= SHR32(xh, 1) ^ SHL32(q[19], 5);
-	h[4] ^= SHR32(xh, 3) ^ q[20];
-	h[5] ^= SHL32(xh, 6) ^ SHR32(q[21], 6);
-	h[6] ^= SHR32(xh, 4) ^ SHL32(q[22], 6);
-	h[7] ^= SHR32(xh,11) ^ SHL32(q[23], 2);
-	for(i=0; i<8; ++i){
-		h[i] += xl ^ q[24+i] ^ q[i];
-	}
-	for(i=0; i<8; ++i){
-		h[8+i] ^= xh ^ q[24+i];
-		h[8+i] += ROTL32(h[(4+i)%8],i+9);
-	}
-/*
-	h[ 8] += SHL32(xl, 8) ^ q[23] ^ q[ 8];
-	h[ 9] += SHR32(xl, 6) ^ q[16] ^ q[ 9];
-	h[10] += SHL32(xl, 6) ^ q[17] ^ q[10];
-	h[11] += SHL32(xl, 4) ^ q[18] ^ q[11];
-	h[12] += SHR32(xl, 3) ^ q[19] ^ q[12];
-	h[13] += SHR32(xl, 4) ^ q[20] ^ q[13];
-	h[14] += SHR32(xl, 7) ^ q[21] ^ q[14];
-	h[15] += SHR32(xl, 2) ^ q[22] ^ q[15];
-*/
-	i=6;
-	do{
-		q[9+i] ^= q[16+i];
-	}while(i--);
-	q[8] ^= q[23];
-	h[ 8] += SHL32(xl, 8) ^ q[ 8];
-	h[ 9] += SHR32(xl, 6) ^ q[ 9];
-	h[10] += SHL32(xl, 6) ^ q[10];
-	h[11] += SHL32(xl, 4) ^ q[11];
-	h[12] += SHR32(xl, 3) ^ q[12];
-	h[13] += SHR32(xl, 4) ^ q[13];
-	h[14] += SHR32(xl, 7) ^ q[14];
-	h[15] += SHR32(xl, 2) ^ q[15];
+
+	h[0] = (SHL32(xh, 5) ^ SHR32(q[16], 5) ^ m[ 0]) + (xl ^ q[24] ^ q[ 0]);
+	h[1] = (SHR32(xh, 7) ^ SHL32(q[17], 8) ^ m[ 1]) + (xl ^ q[25] ^ q[ 1]);
+	h[2] = (SHR32(xh, 5) ^ SHL32(q[18], 5) ^ m[ 2]) + (xl ^ q[26] ^ q[ 2]);
+	h[3] = (SHR32(xh, 1) ^ SHL32(q[19], 5) ^ m[ 3]) + (xl ^ q[27] ^ q[ 3]);
+	h[4] = (SHR32(xh, 3) ^ q[20]           ^ m[ 4]) + (xl ^ q[28] ^ q[ 4]);
+	h[5] = (SHL32(xh, 6) ^ SHR32(q[21], 6) ^ m[ 5]) + (xl ^ q[29] ^ q[ 5]);
+	h[6] = (SHR32(xh, 4) ^ SHL32(q[22], 6) ^ m[ 6]) + (xl ^ q[30] ^ q[ 6]);
+	h[7] = (SHR32(xh,11) ^ SHL32(q[23], 2) ^ m[ 7]) + (xl ^ q[31] ^ q[ 7]);
+
+	h[ 8] = ROTL32(h[4],  9) + (xh ^ q[24] ^ m[ 8]) + (SHL32(xl, 8) ^ q[23] ^ q[ 8]);
+	h[ 9] = ROTL32(h[5], 10) + (xh ^ q[25] ^ m[ 9]) + (SHR32(xl, 6) ^ q[16] ^ q[ 9]);
+	h[10] = ROTL32(h[6], 11) + (xh ^ q[26] ^ m[10]) + (SHL32(xl, 6) ^ q[17] ^ q[10]);
+	h[11] = ROTL32(h[7], 12) + (xh ^ q[27] ^ m[11]) + (SHL32(xl, 4) ^ q[18] ^ q[11]);
+	h[12] = ROTL32(h[0], 13) + (xh ^ q[28] ^ m[12]) + (SHR32(xl, 3) ^ q[19] ^ q[12]);
+	h[13] = ROTL32(h[1], 14) + (xh ^ q[29] ^ m[13]) + (SHR32(xl, 4) ^ q[20] ^ q[13]);
+	h[14] = ROTL32(h[2], 15) + (xh ^ q[30] ^ m[14]) + (SHR32(xl, 7) ^ q[21] ^ q[14]);
+	h[15] = ROTL32(h[3], 16) + (xh ^ q[31] ^ m[15]) + (SHR32(xl, 2) ^ q[22] ^ q[15]);
+
 }
 
 void bmw_small_nextBlock(bmw_small_ctx_t* ctx, const void* block){
