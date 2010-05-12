@@ -105,6 +105,7 @@
 #define R32_5(x)   (ROTR32((x), 13))
 #define R32_6(x)   (ROTR32((x),  9))
 #define R32_7(x)   (ROTR32((x),  5))
+
 /*
 #define K 0x05555555L
 static

@@ -34,9 +34,6 @@
 #define ROTL64(a,n) (((a)<<(n))|((a)>>(64-(n))))
 #define ROTR64(a,n) (((a)>>(n))|((a)<<(64-(n))))
 
-#define TWEAK   1
-#define BUG24   0
-#define F0_HACK 0
 
 #define DEBUG   0
 
@@ -160,116 +157,6 @@ uint64_t bmw_large_expand2(uint8_t j, const uint64_t* q, const void* m, const vo
 	return r;
 }
 
-#if F0_HACK==2
-/* to understand this implementation take a look at f0-opt-table.txt */
-static uint16_t hack_table[5] = { 0x0311, 0xDDB3, 0x2A79, 0x07AA, 0x51C2 };
-static uint8_t  offset_table[5]  = { 4+16, 6+16, 9+16, 12+16, 13+16 };
-
-
-static
-void bmw_large_f0(uint64_t* q, const uint64_t* h, const void* m){
-	uint16_t hack_reg;
-	uint8_t i,j,c;
-	uint64_t(*s[])(uint64_t)={ bmw_large_s0, bmw_large_s1, bmw_large_s2,
-	                           bmw_large_s3, bmw_large_s4 };
-	for(i=0; i<16; ++i){
-		((uint64_t*)h)[i] ^= ((uint64_t*)m)[i];
-	}
-	dump_x(h, 16, 'T');
-	memset(q, 0, 8*16);
-	c=4;
-	do{
-		i=15;
-		j = offset_table[c];
-		hack_reg = hack_table[c];
-		do{
-			if(hack_reg&1){
-				q[i]-= h[j&15];
-			}else{
-				q[i]+= h[j&15];
-			}
-			--j;
-			hack_reg>>= 1;
-		}while(i--!=0);
-	}while(c--!=0);
-	dump_x(q, 16, 'W');
-	for(i=0; i<16; ++i){
-		q[i] = s[i%5](q[i]);
-	}
-#if TWEAK
-	for(i=0; i<16; ++i){
-		((uint64_t*)h)[i] ^= ((uint64_t*)m)[i];
-	}
-	for(i=0; i<16; ++i){
-		q[i] += h[(i+1)&0xf];
-	}
-#endif /* TWEAK */
-}
-#endif /* F0_HACK==2 */
-
-#if F0_HACK==1
-static
-uint8_t f0_lut[] PROGMEM ={
-	 5<<1, ( 7<<1)+1, (10<<1)+0, (13<<1)+0, (14<<1)+0,
-	 6<<1, ( 8<<1)+1, (11<<1)+0, (14<<1)+0, (15<<1)+1,
-	 0<<1, ( 7<<1)+0, ( 9<<1)+0, (12<<1)+1, (15<<1)+0,
-	 0<<1, ( 1<<1)+1, ( 8<<1)+0, (10<<1)+1, (13<<1)+0,
-	 1<<1, ( 2<<1)+0, ( 9<<1)+0, (11<<1)+1, (14<<1)+1,
-	 3<<1, ( 2<<1)+1, (10<<1)+0, (12<<1)+1, (15<<1)+0,
-	 4<<1, ( 0<<1)+1, ( 3<<1)+1, (11<<1)+1, (13<<1)+0,
-	 1<<1, ( 4<<1)+1, ( 5<<1)+1, (12<<1)+1, (14<<1)+1,
-	 2<<1, ( 5<<1)+1, ( 6<<1)+1, (13<<1)+0, (15<<1)+1,
-	 0<<1, ( 3<<1)+1, ( 6<<1)+0, ( 7<<1)+1, (14<<1)+0,
-	 8<<1, ( 1<<1)+1, ( 4<<1)+1, ( 7<<1)+1, (15<<1)+0,
-	 8<<1, ( 0<<1)+1, ( 2<<1)+1, ( 5<<1)+1, ( 9<<1)+0,
-	 1<<1, ( 3<<1)+0, ( 6<<1)+1, ( 9<<1)+1, (10<<1)+0,
-	 2<<1, ( 4<<1)+0, ( 7<<1)+0, (10<<1)+0, (11<<1)+0,
-	 3<<1, ( 5<<1)+1, ( 8<<1)+0, (11<<1)+1, (12<<1)+1,
-	12<<1, ( 4<<1)+1, ( 6<<1)+1, ( 9<<1)+1, (13<<1)+0
-};
-
-static
-void bmw_large_f0(uint64_t* q, const uint64_t* h, const void* m){
-	uint8_t i,j=-1,v,sign,l=0;
-	uint64_t(*s[])(uint64_t)={ bmw_large_s0, bmw_large_s1, bmw_large_s2,
-	                           bmw_large_s3, bmw_large_s4 };
-	for(i=0; i<16; ++i){
-		((uint64_t*)h)[i] ^= ((uint64_t*)m)[i];
-	}
-	dump_x(h, 16, 'T');
-//	memset(q, 0, 4*16);
-	for(i=0; i<5*16; ++i){
-		v = pgm_read_byte(f0_lut+i);
-		sign = v&1;
-		v >>=1;
-		if(i==l){
-			j++;
-			l+=5;
-			q[j] = h[v];
-			continue;
-		}
-		if(sign){
-			q[j] -= h[v];
-		}else{
-			q[j] += h[v];
-		}
-	}
-	dump_x(q, 16, 'W');
-	for(i=0; i<16; ++i){
-		q[i] = s[i%5](q[i]);
-	}
-#if TWEAK
-	for(i=0; i<16; ++i){
-		((uint64_t*)h)[i] ^= ((uint64_t*)m)[i];
-	}
-	for(i=0; i<16; ++i){
-		q[i] += h[(i+1)&0xf];
-	}
-#endif /* TWEAK */
-}
-#endif /* F0_HACK==1 */
-
-#if F0_HACK==0
 static
 void bmw_large_f0(uint64_t* q, const uint64_t* h, const void* m){
 	uint8_t i;
@@ -300,13 +187,10 @@ void bmw_large_f0(uint64_t* q, const uint64_t* h, const void* m){
 	q[15] = S64_0(q[15]);
 
 	for(i=0; i<16; ++i){
-		((uint64_t*)h)[i] ^= ((uint64_t*)m)[i];
-	}
-	for(i=0; i<16; ++i){
-		q[i] += h[(i+1)&0xf];
+		q[(i+15)&15] += ((uint64_t*)h)[i] ^= ((uint64_t*)m)[i];
+
 	}
 }
-#endif /* F0_HACK==0 */
 
 static
 void bmw_large_f1(uint64_t* q, const void* m, const uint64_t* h){
@@ -319,46 +203,35 @@ void bmw_large_f1(uint64_t* q, const void* m, const uint64_t* h){
 }
 
 static
-void bmw_large_f2(uint64_t* h, const uint64_t* q, const void* m){
-	uint64_t xl=0, xh;
-	uint8_t i;
-	for(i=16;i<24;++i){
-		xl ^= q[i];
-	}
-	xh = xl;
-	for(i=24;i<32;++i){
-		xh ^= q[i];
-	}
+void bmw_large_f2(uint64_t* h, const uint64_t* q, const uint64_t* m){
+
+	uint64_t xl, xh;
+	xl =      q[16] ^ q[17] ^ q[18] ^ q[19] ^ q[20] ^ q[21] ^ q[22] ^ q[23];
+	xh = xl ^ q[24] ^ q[25] ^ q[26] ^ q[27] ^ q[28] ^ q[29] ^ q[30] ^ q[31];
 #if DEBUG
 	cli_putstr("\r\n XL = ");
-	cli_hexdump_rev(&xl, 4);
+	cli_hexdump_rev(&xl, 8);
 	cli_putstr("\r\n XH = ");
-	cli_hexdump_rev(&xh, 4);
+	cli_hexdump_rev(&xh, 8);
 #endif
-	memcpy(h, m, 16*8);
-	h[0] ^= SHL64(xh, 5) ^ SHR64(q[16], 5);
-	h[1] ^= SHR64(xh, 7) ^ SHL64(q[17], 8);
-	h[2] ^= SHR64(xh, 5) ^ SHL64(q[18], 5);
-	h[3] ^= SHR64(xh, 1) ^ SHL64(q[19], 5);
-	h[4] ^= SHR64(xh, 3) ^ q[20];
-	h[5] ^= SHL64(xh, 6) ^ SHR64(q[21], 6);
-	h[6] ^= SHR64(xh, 4) ^ SHL64(q[22], 6);
-	h[7] ^= SHR64(xh,11) ^ SHL64(q[23], 2);
-	for(i=0; i<8; ++i){
-		h[i] += xl ^ q[24+i] ^ q[i];
-	}
-	for(i=0; i<8; ++i){
-		h[8+i] ^= xh ^ q[24+i];
-		h[8+i] += ROTL64(h[(4+i)%8],i+9);
-	}
-	h[ 8] += SHL64(xl, 8) ^ q[23] ^ q[ 8];
-	h[ 9] += SHR64(xl, 6) ^ q[16] ^ q[ 9];
-	h[10] += SHL64(xl, 6) ^ q[17] ^ q[10];
-	h[11] += SHL64(xl, 4) ^ q[18] ^ q[11];
-	h[12] += SHR64(xl, 3) ^ q[19] ^ q[12];
-	h[13] += SHR64(xl, 4) ^ q[20] ^ q[13];
-	h[14] += SHR64(xl, 7) ^ q[21] ^ q[14];
-	h[15] += SHR64(xl, 2) ^ q[22] ^ q[15];
+
+	h[0] = (SHL64(xh, 5) ^ SHR64(q[16], 5) ^ m[ 0]) + (xl ^ q[24] ^ q[ 0]);
+	h[1] = (SHR64(xh, 7) ^ SHL64(q[17], 8) ^ m[ 1]) + (xl ^ q[25] ^ q[ 1]);
+	h[2] = (SHR64(xh, 5) ^ SHL64(q[18], 5) ^ m[ 2]) + (xl ^ q[26] ^ q[ 2]);
+	h[3] = (SHR64(xh, 1) ^ SHL64(q[19], 5) ^ m[ 3]) + (xl ^ q[27] ^ q[ 3]);
+	h[4] = (SHR64(xh, 3) ^ q[20]           ^ m[ 4]) + (xl ^ q[28] ^ q[ 4]);
+	h[5] = (SHL64(xh, 6) ^ SHR64(q[21], 6) ^ m[ 5]) + (xl ^ q[29] ^ q[ 5]);
+	h[6] = (SHR64(xh, 4) ^ SHL64(q[22], 6) ^ m[ 6]) + (xl ^ q[30] ^ q[ 6]);
+	h[7] = (SHR64(xh,11) ^ SHL64(q[23], 2) ^ m[ 7]) + (xl ^ q[31] ^ q[ 7]);
+
+	h[ 8] = ROTL64(h[4],  9) + (xh ^ q[24] ^ m[ 8]) + (SHL64(xl, 8) ^ q[23] ^ q[ 8]);
+	h[ 9] = ROTL64(h[5], 10) + (xh ^ q[25] ^ m[ 9]) + (SHR64(xl, 6) ^ q[16] ^ q[ 9]);
+	h[10] = ROTL64(h[6], 11) + (xh ^ q[26] ^ m[10]) + (SHL64(xl, 6) ^ q[17] ^ q[10]);
+	h[11] = ROTL64(h[7], 12) + (xh ^ q[27] ^ m[11]) + (SHL64(xl, 4) ^ q[18] ^ q[11]);
+	h[12] = ROTL64(h[0], 13) + (xh ^ q[28] ^ m[12]) + (SHR64(xl, 3) ^ q[19] ^ q[12]);
+	h[13] = ROTL64(h[1], 14) + (xh ^ q[29] ^ m[13]) + (SHR64(xl, 4) ^ q[20] ^ q[13]);
+	h[14] = ROTL64(h[2], 15) + (xh ^ q[30] ^ m[14]) + (SHR64(xl, 7) ^ q[21] ^ q[14]);
+	h[15] = ROTL64(h[3], 16) + (xh ^ q[31] ^ m[15]) + (SHR64(xl, 2) ^ q[22] ^ q[15]);
 }
 
 void bmw_large_nextBlock(bmw_large_ctx_t* ctx, const void* block){
@@ -390,7 +263,6 @@ void bmw_large_lastBlock(bmw_large_ctx_t* ctx, const void* block, uint16_t lengt
 	}
 	*((uint64_t*)&(buffer[128-8])) = (uint64_t)(ctx->counter*1024LL)+(uint64_t)length_b;
 	bmw_large_nextBlock(ctx, buffer);
-#if TWEAK
 	uint8_t i;
 	uint64_t q[32];
 	memset(buffer, 0xaa, 128);
@@ -401,7 +273,6 @@ void bmw_large_lastBlock(bmw_large_ctx_t* ctx, const void* block, uint16_t lengt
 	bmw_large_f1(q, ctx->h, (uint64_t*)buffer);
 	bmw_large_f2((uint64_t*)buffer, q, ctx->h);
 	memcpy(ctx->h, buffer, 128);
-#endif
 }
 
 void bmw384_init(bmw384_ctx_t* ctx){
