@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "config.h"
 #include "cli.h"
 #include "dump.h"
 #include "uart_lowlevel.h"
@@ -169,7 +170,7 @@ cmdlist_entry_t cmdlist[] = {
 };
 
 int main(void) {
-	sysclk_set_freq(SYS_FREQ_40MHZ000);
+	sysclk_set_freq(SYS_FREQ);
 	sysclk_mosc_verify_enable();
     uart_init(UART_0, 115200, 8, UART_PARATY_NONE, UART_STOPBITS_ONE);
     gptm_set_timer_32periodic(TIMER0);

@@ -18,27 +18,10 @@
 */
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
-// #define F_CPU 20000000
-// #define F_CPU 16000000         /* oscillator-frequency in Hz */
-// #define F_CPU 14745600
-#define F_CPU 20000000 /* this is out of spec but lets try it */
 
-#define DEBUG_METHOD uart
+#include "sysclock.h"
 
-#include "uart_defines.h"
-
-#define UART0_I 1
-#define UART0_BAUD_RATE  115200
-#define UART0_PARATY     UART_PARATY_NONE
-#define UART0_STOPBITS   UART_STOPBITS_ONE
-#define UART0_DATABITS   UART_DATABITS_8
-#define UART0_RXBUFFER_SIZE 120
-#define UART0_TXBUFFER_SIZE 120
-#define UART0_SWFLOWCTRL     1
-#define UART0_THRESH_LOW     0
-#define UART0_THRESH_HIGH   32
-
-#define CLI_AUTO_HELP
+#define SYS_FREQ SYS_FREQ_50MHZ000
 
 #endif
 

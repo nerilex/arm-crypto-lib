@@ -104,66 +104,27 @@
 #define R64_6(x)    (ROTR64((x), 21))
 #define R64_7(x)    (ROTR64((x), 11))
 
-/*
-#define K    0x0555555555555555LL
-#define MASK 0xFFFFFFFFFFFFFFFFLL
-static
-uint64_t k_lut[] PROGMEM = {
-	16LL*K, 17LL*K, 18LL*K, 19LL*K,
-	20LL*K, 21LL*K, 22LL*K, 23LL*K,
-	24LL*K, 25LL*K, 26LL*K, 27LL*K,
-	28LL*K, 29LL*K, 30LL*K, 31LL*K };
-*/
-/* the same as above but precomputed to avoid compiler warnings */
-static const
-uint64_t k_lut[] = {
-	0x5555555555555550LL, 0x5aaaaaaaaaaaaaa5LL, 0x5ffffffffffffffaLL,
-	0x655555555555554fLL, 0x6aaaaaaaaaaaaaa4LL, 0x6ffffffffffffff9LL,
-	0x755555555555554eLL, 0x7aaaaaaaaaaaaaa3LL, 0x7ffffffffffffff8LL,
-	0x855555555555554dLL, 0x8aaaaaaaaaaaaaa2LL, 0x8ffffffffffffff7LL,
-	0x955555555555554cLL, 0x9aaaaaaaaaaaaaa1LL, 0x9ffffffffffffff6LL,
-	0xa55555555555554bLL };
+#include "f1_autogen_large.c"
 
-static
-uint64_t bmw_large_expand1(uint8_t j, const uint64_t* q, const void* m, const void* h){
-	uint64_t r;
-	/* r = 0x0555555555555555LL*(j+16); */
-	r  = (   ROTL64(((uint64_t*)m)[(j)&0xf],   ((j+ 0)&0xf)+1)
-	       + ROTL64(((uint64_t*)m)[(j+3)&0xf], ((j+ 3)&0xf)+1)
-	       + k_lut[j]
-	       - ROTL64(((uint64_t*)m)[(j+10)&0xf],((j+10)&0xf)+1)
-	     ) ^ ((uint64_t*)h)[(j+7)&0xf];
-	r += S64_1(q[j+ 0]) + S64_2(q[j+ 1]) + S64_3(q[j+ 2]) + S64_0(q[j+ 3]) +
-		 S64_1(q[j+ 4]) + S64_2(q[j+ 5]) + S64_3(q[j+ 6]) + S64_0(q[j+ 7]) +
-		 S64_1(q[j+ 8]) + S64_2(q[j+ 9]) + S64_3(q[j+10]) + S64_0(q[j+11]) +
-		 S64_1(q[j+12]) + S64_2(q[j+13]) + S64_3(q[j+14]) + S64_0(q[j+15]);
-
-	return r;
-}
-
-static
-uint64_t bmw_large_expand2(uint8_t j, const uint64_t* q, const void* m, const void* h){
-	uint64_t r=0;
-	r  = (   ROTL64(((uint64_t*)m)[(j)&0xf],   ((j+ 0)&0xf)+1)
-	       + ROTL64(((uint64_t*)m)[(j+3)&0xf], ((j+ 3)&0xf)+1)
-	       + k_lut[j]
-	       - ROTL64(((uint64_t*)m)[(j+10)&0xf],((j+10)&0xf)+1)
-	     ) ^ ((uint64_t*)h)[(j+7)&0xf];
-	r += (q[j+ 0]) + R64_1(q[j+ 1]) + (q[j+ 2]) + R64_2(q[j+ 3]) +
-		 (q[j+ 4]) + R64_3(q[j+ 5]) + (q[j+ 6]) + R64_4(q[j+ 7]) +
-		 (q[j+ 8]) + R64_5(q[j+ 9]) + (q[j+10]) + R64_6(q[j+11]) +
-		 (q[j+12]) + R64_7(q[j+13]) + S64_4(q[j+14]) + S64_5(q[j+15]);
-
-	return r;
-}
-
-static
-void bmw_large_f0(uint64_t* q, const uint64_t* h, const void* m){
-	uint8_t i;
-	for(i=0; i<16; ++i){
-		((uint64_t*)h)[i] ^= ((uint64_t*)m)[i];
-	}
-//	dump_x(t, 16, 'T');
+static inline
+void bmw_large_f0(uint64_t* q, uint64_t* h, const uint64_t* m){
+	h[ 0] ^= m[ 0];
+	h[ 1] ^= m[ 1];
+	h[ 2] ^= m[ 2];
+	h[ 3] ^= m[ 3];
+	h[ 4] ^= m[ 4];
+	h[ 5] ^= m[ 5];
+	h[ 6] ^= m[ 6];
+	h[ 7] ^= m[ 7];
+	h[ 8] ^= m[ 8];
+	h[ 9] ^= m[ 9];
+	h[10] ^= m[10];
+	h[11] ^= m[11];
+	h[12] ^= m[12];
+	h[13] ^= m[13];
+	h[14] ^= m[14];
+	h[15] ^= m[15];
+	//	dump_x(t, 16, 'T');
 	q[ 0] = (h[ 5] - h[ 7] + h[10] + h[13] + h[14]);
 	q[ 1] = (h[ 6] - h[ 8] + h[11] + h[14] - h[15]);
 	q[ 2] = (h[ 0] + h[ 7] + h[ 9] - h[12] + h[15]);
@@ -181,28 +142,26 @@ void bmw_large_f0(uint64_t* q, const uint64_t* h, const void* m){
 	q[14] = (h[ 3] - h[ 5] + h[ 8] - h[11] - h[12]);
 	q[15] = (h[12] - h[ 4] - h[ 6] - h[ 9] + h[13]);
 	dump_x(q, 16, 'W');
-	q[ 0] = S64_0(q[ 0]); q[ 1] = S64_1(q[ 1]); q[ 2] = S64_2(q[ 2]); q[ 3] = S64_3(q[ 3]); q[ 4] = S64_4(q[ 4]);
-	q[ 5] = S64_0(q[ 5]); q[ 6] = S64_1(q[ 6]); q[ 7] = S64_2(q[ 7]); q[ 8] = S64_3(q[ 8]); q[ 9] = S64_4(q[ 9]);
-	q[10] = S64_0(q[10]); q[11] = S64_1(q[11]); q[12] = S64_2(q[12]); q[13] = S64_3(q[13]); q[14] = S64_4(q[14]);
-	q[15] = S64_0(q[15]);
 
-	for(i=0; i<16; ++i){
-		q[(i+15)&15] += ((uint64_t*)h)[i] ^= ((uint64_t*)m)[i];
-
-	}
+	q[ 0] = S64_0(q[ 0]) + (h[ 1] ^= m[ 1]);
+	q[ 1] = S64_1(q[ 1]) + (h[ 2] ^= m[ 2]);
+	q[ 2] = S64_2(q[ 2]) + (h[ 3] ^= m[ 3]);
+	q[ 3] = S64_3(q[ 3]) + (h[ 4] ^= m[ 4]);
+	q[ 4] = S64_4(q[ 4]) + (h[ 5] ^= m[ 5]);
+	q[ 5] = S64_0(q[ 5]) + (h[ 6] ^= m[ 6]);
+	q[ 6] = S64_1(q[ 6]) + (h[ 7] ^= m[ 7]);
+	q[ 7] = S64_2(q[ 7]) + (h[ 8] ^= m[ 8]);
+	q[ 8] = S64_3(q[ 8]) + (h[ 9] ^= m[ 9]);
+	q[ 9] = S64_4(q[ 9]) + (h[10] ^= m[10]);
+	q[10] = S64_0(q[10]) + (h[11] ^= m[11]);
+	q[11] = S64_1(q[11]) + (h[12] ^= m[12]);
+	q[12] = S64_2(q[12]) + (h[13] ^= m[13]);
+	q[13] = S64_3(q[13]) + (h[14] ^= m[14]);
+	q[14] = S64_4(q[14]) + (h[15] ^= m[15]);
+	q[15] = S64_0(q[15]) + (h[ 0] ^= m[ 0]);
 }
 
-static
-void bmw_large_f1(uint64_t* q, const void* m, const uint64_t* h){
-	uint8_t i;
-	q[16] = bmw_large_expand1(0, q, m, h);
-	q[17] = bmw_large_expand1(1, q, m, h);
-	for(i=2; i<16; ++i){
-		q[16+i] = bmw_large_expand2(i, q, m, h);
-	}
-}
-
-static
+static inline
 void bmw_large_f2(uint64_t* h, const uint64_t* q, const uint64_t* m){
 
 	uint64_t xl, xh;
