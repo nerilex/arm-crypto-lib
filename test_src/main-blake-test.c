@@ -33,14 +33,14 @@
 #include "shavs.h"
 #include "nessie_hash_test.h"
 #include "performance_test.h"
-#include "hfal-nessie.h"
-#include "hfal-performance.h"
-#include "hfal-test.h"
+#include "hfal/hfal-nessie.h"
+#include "hfal/hfal-performance.h"
+#include "hfal/hfal-test.h"
 
 #include "blake_small.h"
 #include "blake_large.h"
-#include "hfal_blake_small.h"
-#include "hfal_blake_large.h"
+#include "hfal/hfal_blake_small.h"
+#include "hfal/hfal_blake_large.h"
 
 
 char* algo_name = "Blake";

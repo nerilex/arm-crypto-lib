@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include "aes.h"
 #include "aes_keyschedule.h"
-#include "aes_sbox.h"
+#include "aes/aes_sbox.h"
 #include <string.h>
 
 static

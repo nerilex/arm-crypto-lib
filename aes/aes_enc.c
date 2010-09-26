@@ -28,8 +28,8 @@
 #include <stdint.h>
 #include <string.h>
 #include "aes.h"
-#include "gf256mul.h"
-#include "aes_sbox.h"
+#include "gf256mul/gf256mul.h"
+#include "aes/aes_sbox.h"
 #include "aes_enc.h"
 
 void aes_shiftcol(void* data, uint8_t shift){
