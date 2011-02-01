@@ -34,12 +34,12 @@
 #include "shavs.h"
 #include "nessie_hash_test.h"
 #include "performance_test.h"
-#include "hfal/hfal-nessie.h"
-#include "hfal/hfal-performance.h"
-#include "hfal/hfal-test.h"
+#include "hfal-nessie.h"
+#include "hfal-performance.h"
+#include "hfal-test.h"
 
-#include "hfal/hfal_bmw_small.h"
-#include "hfal/hfal_bmw_large.h"
+#include "hfal_bmw_small.h"
+#include "hfal_bmw_large.h"
 #include "bmw_small.h"
 #include "bmw_large.h"
 

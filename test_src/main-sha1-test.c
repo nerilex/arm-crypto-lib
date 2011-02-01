@@ -34,12 +34,12 @@
 #include "shavs.h"
 #include "nessie_hash_test.h"
 #include "performance_test.h"
-#include "hfal/hfal-nessie.h"
-#include "hfal/hfal-performance.h"
-#include "hfal/hfal-test.h"
+#include "hfal-nessie.h"
+#include "hfal-performance.h"
+#include "hfal-test.h"
 
 #include "sha1.h"
-#include "hfal/hfal_sha1.h"
+#include "hfal_sha1.h"
 
 void uart0_putc(char byte){
 	uart_putc(UART_0, byte);

@@ -33,12 +33,12 @@
 #include "shavs.h"
 #include "nessie_hash_test.h"
 #include "performance_test.h"
-#include "hfal/hfal-nessie.h"
-#include "hfal/hfal-performance.h"
-#include "hfal/hfal-test.h"
+#include "hfal-nessie.h"
+#include "hfal-performance.h"
+#include "hfal-test.h"
 
 #include "echo.h"
-#include "hfal/hfal_echo.h"
+#include "hfal_echo.h"
 
 char* algo_name = "Echo";
 

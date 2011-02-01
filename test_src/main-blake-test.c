@@ -33,14 +33,14 @@
 #include "shavs.h"
 #include "nessie_hash_test.h"
 #include "performance_test.h"
-#include "hfal/hfal-nessie.h"
-#include "hfal/hfal-performance.h"
-#include "hfal/hfal-test.h"
+#include "hfal-nessie.h"
+#include "hfal-performance.h"
+#include "hfal-test.h"
 
 #include "blake_small.h"
 #include "blake_large.h"
-#include "hfal/hfal_blake_small.h"
-#include "hfal/hfal_blake_large.h"
+#include "hfal_blake_small.h"
+#include "hfal_blake_large.h"
 
 
 char* algo_name = "Blake";
@@ -55,10 +55,10 @@ char uart0_getc(void){
 
 
 const hfdesc_t* algolist[] = {
-	(hfdesc_t*)&blake28_desc,
-	(hfdesc_t*)&blake32_desc,
-	(hfdesc_t*)&blake48_desc,
-	(hfdesc_t*)&blake64_desc,
+	(hfdesc_t*)&blake224_desc,
+	(hfdesc_t*)&blake256_desc,
+	(hfdesc_t*)&blake384_desc,
+	(hfdesc_t*)&blake512_desc,
 	NULL
 };
 
@@ -69,40 +69,40 @@ const hfdesc_t* algolist[] = {
 void testrun_nessie_blake(void){
 	hfal_nessie_multiple(algolist);
 }
-void blake28_test(void* msg, uint32_t length_b){
-	hfal_test(&blake28_desc, msg, length_b);
+void blake224_test(void* msg, uint32_t length_b){
+	hfal_test(&blake224_desc, msg, length_b);
 }
 
-void blake32_test(void* msg, uint32_t length_b){
-	hfal_test(&blake32_desc, msg, length_b);
+void blake256_test(void* msg, uint32_t length_b){
+	hfal_test(&blake256_desc, msg, length_b);
 }
 
-void blake48_test(void* msg, uint32_t length_b){
-	hfal_test(&blake48_desc, msg, length_b);
+void blake384_test(void* msg, uint32_t length_b){
+	hfal_test(&blake384_desc, msg, length_b);
 }
 
-void blake64_test(void* msg, uint32_t length_b){
-	hfal_test(&blake64_desc, msg, length_b);
+void blake512_test(void* msg, uint32_t length_b){
+	hfal_test(&blake512_desc, msg, length_b);
 }
 void testrun_stdtest_blake(void){
 	uint8_t msg1[144];
 	memset(msg1, 0, 144);
-	blake28_test("", 8);
-	blake28_test(msg1, 576);
-	blake32_test("", 8);
-	blake32_test(msg1, 576);
-	blake48_test("", 8);
-	blake48_test(msg1, 1152);
-	blake64_test("", 8);
-	blake64_test(msg1, 1152);
+	blake224_test("", 8);
+	blake224_test(msg1, 576);
+	blake256_test("", 8);
+	blake256_test(msg1, 576);
+	blake384_test("", 8);
+	blake384_test(msg1, 1152);
+	blake512_test("", 8);
+	blake512_test(msg1, 1152);
 }
 
 void testshort(void){
-	blake32_test("", 8);
+	blake256_test("", 8);
 }
 
 void testlshort(void){
-	blake64_test("", 8);
+	blake512_test("", 8);
 }
 
 void test512_32(void){
@@ -114,7 +114,7 @@ void test512_32(void){
 				 0xDC, 0xDE, 0x57, 0x9A, 0x37, 0xE1, 0x50, 0xEF,
 				 0xBE, 0xF5, 0x55, 0x5B, 0x4C, 0x1C, 0xB4, 0x04,
 				 0x39, 0xD8, 0x35, 0xA7, 0x24, 0xE2, 0xFA, 0xE7 };
-	blake32_test(d, 512);
+	blake256_test(d, 512);
 }
 
 void performance_blake(void){
@@ -163,7 +163,7 @@ int main(void) {
     cli_tx = uart0_putc;
 
 	shavs_algolist=(hfdesc_t**)algolist;
-	shavs_algo=(hfdesc_t*)&blake32_desc;
+	shavs_algo=(hfdesc_t*)&blake256_desc;
 
 	for(;;){
 		cli_putstr("\r\n\r\nARM-Crypto-Lib VS (");

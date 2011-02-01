@@ -34,14 +34,14 @@
 #include "shavs.h"
 #include "nessie_hash_test.h"
 #include "performance_test.h"
-#include "hfal/hfal-nessie.h"
-#include "hfal/hfal-performance.h"
-#include "hfal/hfal-test.h"
+#include "hfal-nessie.h"
+#include "hfal-performance.h"
+#include "hfal-test.h"
 
 #include "skein.h"
-#include "hfal/hfal_skein256.h"
-#include "hfal/hfal_skein512.h"
-#include "hfal/hfal_skein1024.h"
+#include "hfal_skein256.h"
+#include "hfal_skein512.h"
+#include "hfal_skein1024.h"
 
 
 void uart0_putc(char byte){

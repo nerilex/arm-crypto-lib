@@ -70,7 +70,7 @@ define TargetSource_Template
 $(1): $(2)
 	@echo "[cc]: $(1) <-- $(2)"
 	@mkdir -p $(dir $(1))
-	@$(CC) $(CFLAGS_A) -I./$(strip $(3)) -c -o $(1) $(2)
+	@$(CC) $(CFLAGS_A) $(addprefix -I./,$(3)) $(addprefix -D, $(4)) -c -o $(1) $(2)
 endef
 
 # ----------------------------------------------------------------------------
@@ -92,8 +92,9 @@ $(foreach a, $(ALGORITHMS), \
   $(foreach b, $($(a)_OBJ), \
     $(eval $(call TargetSource_Template, \
       $(BIN_DIR)$(call lc, $(a))/$(b), \
-       $(call find_source_file, $(b), $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR) ),\
-      $($(a)_DIR) \
+      $(call find_source_file, $(b), $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR) ),\
+      $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR), \
+      $($(a)_DEF) \
     )) \
   ) \
 )
@@ -102,8 +103,9 @@ $(foreach a, $(ALGORITHMS), \
   $(foreach b, $($(a)_TEST_BIN), \
     $(eval $(call TargetSource_Template, \
       $(BIN_DIR)$(call lc, $(a))/$(TEST_DIR)$(b), \
-       $(call find_source_file, $(b), $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR) ),\
-      $($(a)_DIR) \
+      $(call find_source_file, $(b), $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR) ),\
+      $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR), \
+      $($(a)_DEF) \
     )) \
   ) \
 )
@@ -134,7 +136,7 @@ all: $(foreach algo, $(ALGORITHMS), $($(algo)_BINOBJ))
 #-------------------------------------------------------------------------------
 
 define TestBin_TEMPLATE
-$(1)_TEST_BIN: $(2)
+$(1)_TESTBIN: $(2)
 endef
 
 $(foreach algo, $(ALGORITHMS), $(eval $(call TestBin_TEMPLATE, \
@@ -258,7 +260,7 @@ aux: $(foreach algo, $(AUX), $(algo)_OBJ)
 help: info
 .PHONY: info
 info:
-	@echo "infos on AVR-Crypto-lib:"
+	@echo "infos on ARM-Crypto-lib:"
 	@echo "  block ciphers:"
 	@echo "    $(BLOCK_CIPHERS)"
 	@echo "  stream ciphers:"
@@ -296,7 +298,7 @@ info:
 	@echo "  docu               - build doxygen documentation"
 	@echo "  clean              - remove a lot of builded files"
 	@echo "  depclean           - also remove dependency files"
-	@echo "  *_TEST_BIN         - build test program"
+	@echo "  *_TESTBIN          - build test program"
 	@echo "  *_TESTRUN          - run nessie test"
 	@echo "  *_OBJ              - build algorithm core"
 	@echo "  *_FLASH            - flash test program"

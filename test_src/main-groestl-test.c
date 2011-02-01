@@ -34,14 +34,14 @@
 #include "shavs.h"
 #include "nessie_hash_test.h"
 #include "performance_test.h"
-#include "hfal/hfal-nessie.h"
-#include "hfal/hfal-performance.h"
-#include "hfal/hfal-test.h"
+#include "hfal-nessie.h"
+#include "hfal-performance.h"
+#include "hfal-test.h"
 
 #include "groestl_small.h"
 #include "groestl_large.h"
-#include "hfal/hfal_groestl_small.h"
-#include "hfal/hfal_groestl_large.h"
+#include "hfal_groestl_small.h"
+#include "hfal_groestl_large.h"
 
 const char* algo_name = "Groestl";
 
