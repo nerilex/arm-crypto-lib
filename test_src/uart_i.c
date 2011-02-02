@@ -23,7 +23,7 @@
 #include "hw_uart_regs.h"
 #include "uart_defines.h"
 #include "circularbytebuffer.h"
-
+#include "uart_lowlevel.h"
 
 static const
 uint32_t uart_base[] = { UART0_BASE, UART1_BASE, UART2_BASE };
@@ -54,6 +54,10 @@ static const
 uint32_t uart_rx_buffersize[] = {128, 128, 128};
 static const
 uint32_t uart_tx_buffersize[] = {256, 256, 256};
+static
+uint8_t uart_swflowctrl_en[] = {0, 0, 0};
+static
+uint8_t uart_swflowctrl_halt[] = {0, 0, 0};
 
 static
 circularbytebuffer_t uart_rx_buffer[3];
@@ -67,7 +71,6 @@ static
 void uart_rx_isr(uint8_t uartno);
 
 void uart0_isr(void){
-
 	if(HW_REG(UART0_BASE+UARTMIS_OFFSET)&_BV(UART_TXMIS)){
 //		HW_REG(uart_base[0]+UARTDR_OFFSET) = 'X';
 		uart_tx_isr(UART_0);
@@ -81,7 +84,8 @@ static
 void uart_tx_isr(uint8_t uartno){
 	uint32_t tmp;
 	tmp = circularbytebuffer_cnt(&(uart_tx_buffer[uartno]));
-	while(tmp-- && (!(HW_REG(uart_base[uartno]+UARTFR_OFFSET)&_BV(UART_TXFF)))){
+	while(tmp-- && (!(HW_REG(uart_base[uartno]+UARTFR_OFFSET)&_BV(UART_TXFF)))
+		  && !(uart_swflowctrl_en[uartno] && uart_swflowctrl_halt[uartno])){
 		HW_REG(uart_base[uartno]+UARTDR_OFFSET)
 				= (uint32_t)circularbytebuffer_get_fifo(&(uart_tx_buffer[uartno]));
 	}
@@ -93,7 +97,19 @@ void uart_rx_isr(uint8_t uartno){
 	uint8_t c;
 	while(!HW_REG(uart_base[uartno]+UARTFR_OFFSET)&_BV(UART_RXFE)){
 		c = HW_REG(uart_base[uartno]+UARTDR_OFFSET);
-		circularbytebuffer_append(c, &(uart_rx_buffer[uartno]));
+		if(uart_swflowctrl_en[uartno]){
+			circularbytebuffer_append(c, &(uart_rx_buffer[uartno]));
+		}else{
+			if(c==UART_XON_CHAR){
+				uart_swflowctrl_halt[uartno] = 0;
+			}else{
+				if(c==UART_XOFF_CHAR){
+					uart_swflowctrl_halt[uartno] = 1;
+				}else{
+					circularbytebuffer_append(c, &(uart_rx_buffer[uartno]));
+				}
+			}
+		}
 	}
 	HW_REG(uart_base[uartno]+UARTICR_OFFSET) |= _BV(UART_RXIC);
 }
@@ -111,6 +127,10 @@ void calc_baud_values(uint32_t baudrate, uint16_t* intdivider, uint8_t* fracdivi
 }
 
 uint8_t uart_init(uint8_t uartno, uint32_t baudrate, uint8_t databits, uint8_t paraty, uint8_t stopbits){
+	return uart_init_flow(uartno, baudrate, databits, paraty, stopbits, 0);
+}
+
+uint8_t uart_init_flow(uint8_t uartno, uint32_t baudrate, uint8_t databits, uint8_t paraty, uint8_t stopbits, uint8_t flowctrl){
 	uint32_t tmp;
 	if(databits>=5){
 		databits-=5;
@@ -194,6 +214,13 @@ uint8_t uart_init(uint8_t uartno, uint32_t baudrate, uint8_t databits, uint8_t p
 		HW_REG(uart_base[uartno]+UARTCTL_OFFSET) |= _BV(UART_HSE);
 	} else {
 		HW_REG(uart_base[uartno]+UARTCTL_OFFSET) &= ~_BV(UART_HSE);
+	}
+	/* set flow control */
+	if(flowctrl==UART_FLOWCTRL_SOFT){
+		uart_swflowctrl_en[uartno] = 1;
+		uart_swflowctrl_halt[uartno] = 0;
+	}else{
+		uart_swflowctrl_en[uartno] = 0;
 	}
 	/* uart interrupt enable */
 	HW_REG(uart_base[uartno]+UARTIM_OFFSET) |= _BV(UART_TXIM) | _BV(UART_RXIM);

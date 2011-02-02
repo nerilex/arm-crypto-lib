@@ -62,15 +62,6 @@ void jh_round(uint8_t* a, uint8_t roundno){
 	}
 }
 
-static
-uint8_t jh_l_inv(uint8_t a){
-	uint8_t v,w;
-	v = a>>4;
-	w = a&0xf;
-	v ^= ((w<<1)^(w>>3)^((w>>2)&2))&0xf;
-	w ^= ((v<<1)^(v>>3)^((v>>2)&2))&0xf;
-	return w|(v<<4);
-}
 
 static inline
 void group(uint8_t *a){

@@ -21,7 +21,6 @@
 #define JH_TABLES_H_
 
 #include <stdint.h>
-#include <avr/pgmspace.h>
 
 extern const uint8_t jh_permutation_table[];
 extern const uint8_t jh_lutbox[];
