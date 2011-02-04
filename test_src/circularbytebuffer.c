@@ -1,6 +1,6 @@
 /* circularbytebuffer.c */
 /*
-    This file is part of the AVR-circularbuffer.
+    This file is part of the ARM-circularbytebuffer.
     Copyright (C) 2009  Daniel Otte (daniel.otte@rub.de)
 
     This program is free software: you can redistribute it and/or modify
