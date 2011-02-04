@@ -52,7 +52,7 @@ void nessie_print_block(uint8_t* block, uint16_t blocksize_bit){
 #define SPACES 31
 #define BYTESPERLINE 16
 
-void nessie_print_item(char* name, uint8_t* buffer, uint16_t size_B){
+void nessie_print_item(const char* name, uint8_t* buffer, uint16_t size_B){
 	uint8_t name_len;
 	uint8_t i;
 	name_len=strlen(name);
@@ -120,7 +120,7 @@ Key size: 256 bits
 Block size: 128 bits
 */
 
-void nessie_print_header(char* name,
+void nessie_print_header(const char* name,
                          uint16_t keysize_b, 
                          uint16_t blocksize_b,
                          uint16_t hashsize_b, 

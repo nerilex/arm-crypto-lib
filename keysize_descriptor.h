@@ -1,6 +1,6 @@
 /* keysize_descriptor.h */
 /*
-    This file is part of the ARM-Crypto-Lib.
+    This file is part of the AVR-Crypto-Lib.
     Copyright (C) 2009  Daniel Otte (daniel.otte@rub.de)
 
     This program is free software: you can redistribute it and/or modify
@@ -55,4 +55,7 @@ typedef struct{ /* keysize is valid if min<=keysize<=max and if keysize mod dist
 
 uint8_t is_valid_keysize_P(const void* ks_desc, uint16_t keysize);
 uint16_t get_keysize(const void* ks_desc);
+uint16_t get_keysizes(const void* ks_desc, uint16_t** list);
+
+
 #endif /* KEYSIZE_DESCRIPTOR_H_ */
