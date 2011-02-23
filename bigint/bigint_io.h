@@ -1,4 +1,4 @@
-/* uart_lowlevel.h */
+/* bigint_io.h */
 /*
     This file is part of the AVR-Crypto-Lib.
     Copyright (C) 2010 Daniel Otte (daniel.otte@rub.de)
@@ -17,20 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UART_LOWLEVEL_H_
-#define UART_LOWLEVEL_H_
+#ifndef BIGINT_IO_H_
+#define BIGINT_IO_H_
 
+#include "bigint.h"
 
-#include <stdint.h>
-#include "hw_regs.h"
-#include "hw_uart_regs.h"
-#include "uart_defines.h"
+void    bigint_print_hex(const bigint_t* a);
+uint8_t bigint_read_hex_echo(bigint_t* a);
 
-uint8_t uart_init(uint8_t uartno, uint32_t baudrate, uint8_t databits, uint8_t paraty, uint8_t stopbits);
-
-void uart_putc(uint8_t uartno, uint8_t byte);
-uint16_t uart_getc(uint8_t uartno);
-uint32_t uart_dataavail(uint8_t uartno);
-void uart_flush(uint8_t uartno);
-
-#endif /* UART_LOWLEVEL_H_ */
+#endif /* BIGINT_IO_H_ */

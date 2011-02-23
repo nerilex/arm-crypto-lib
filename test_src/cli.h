@@ -56,6 +56,7 @@ extern uint8_t cli_echo;
 void cli_putc(char c);
 uint16_t cli_getc(void);
 uint16_t cli_getc_cecho(void);
+uint8_t cli_getsn_cecho(char* s, uint32_t n);
 uint8_t cli_getsn(char* s, uint32_t n);
 void cli_putstr(const char* s);
 void cli_hexdump(const void* data, uint32_t length);

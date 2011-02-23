@@ -90,13 +90,12 @@ void cli_putstr(const char* s){
 		cli_tx(*s++);
 }
 
-
 /**
  * \brief reads a line or max n characters from the console
  * Writes characters from the console into the supplied buffer until a '\r'
  * character is received or until n character a read (whatever happens first).
  * The string will always be terminated by a '\0' character, so the buffer
- * should have at least a size of n+1. 
+ * should have at least a size of n+1.
  */
 uint8_t cli_getsn(char* s, uint32_t n){
 	char c;
@@ -107,6 +106,22 @@ uint8_t cli_getsn(char* s, uint32_t n){
 	}
 	*s='\0';
 	return (c=='\r')?0:1;
+}
+
+/**
+ * \brief reads a line or max n characters from the console and echos the characters back
+ * Writes characters from the console into the supplied buffer until a '\r'
+ * character is received or until n character a read (whatever happens first).
+ * The string will always be terminated by a '\0' character, so the buffer
+ * should have at least a size of n+1.
+ */
+uint8_t cli_getsn_cecho(char* s, uint32_t n){
+	uint8_t echo_backup,r ;
+	echo_backup = cli_echo;
+	cli_echo = 1;
+	r = cli_getsn(s, n);
+	cli_echo = echo_backup;
+	return r;
 }
 
 void cli_hexdump_byte(uint8_t byte){
@@ -309,7 +324,7 @@ uint8_t cli_completion(char* buffer, uint16_t maxcmdlength, const cmdlist_entry_
 	ref[0]='\0';
 	/* check if we are behind the first word */
 	while(buffer[i]){
-		if(!isgraph(buffer[i++]))
+		if(!isgraph((uint8_t)(buffer[i++])))
 			return 0;
 	}
 	for(;;){

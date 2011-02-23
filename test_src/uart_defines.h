@@ -1,6 +1,6 @@
 /* uart_defines.h */
 /*
-    This file is part of the ARM-Crypto-Lib.
+    This file is part of the AVR-Crypto-Lib.
     Copyright (C) 2010 Daniel Otte (daniel.otte@rub.de)
 
     This program is free software: you can redistribute it and/or modify
@@ -46,11 +46,5 @@
 #define UART_ERROR_WRONG_STOPBITS  4
 #define UART_ERROR_RX_BUFFER_INIT  5
 #define UART_ERROR_TX_BUFFER_INIT  6
-
-#define UART_FLOWCTRL_NONE 0
-#define UART_FLOWCTRL_SOFT 1
-
-#define UART_XON_CHAR   0x11
-#define UART_XOFF_CHAR  0x13
 
 #endif /* UART_DEFINES_H_ */
