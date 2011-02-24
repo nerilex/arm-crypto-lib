@@ -21,7 +21,7 @@
 
 #include "sysclock.h"
 
-#define SYS_FREQ SYS_FREQ_50MHZ000
+#define SYS_FREQ SYS_FREQ_80MHZ000
 
 #endif
 
