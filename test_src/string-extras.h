@@ -61,5 +61,5 @@ char* ultoa(unsigned long a, char* buffer, uint8_t radix);
 
 char* ulltoa(unsigned long long a, char* buffer, uint8_t radix);
 
-char* ustoa(unsigned long a, char* buffer, uint8_t radix);
+char* ustoa(unsigned short a, char* buffer, uint8_t radix);
 // void strlwr(char* s);

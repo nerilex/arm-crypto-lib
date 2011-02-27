@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 uint32_t stridentcnt(const char* a, const char* b){
 	uint16_t i=0;
@@ -76,63 +77,85 @@ void str_reverse(char* buffer){
 		--j;
 	}
 }
-
-char* ultoa(unsigned long a, char* buffer, uint8_t radix){
-	if(radix<2 || radix>36){
+char* ultoa (unsigned long value, char* buffer, uint8_t radix ){
+	if((radix>36) || (radix<2) || (buffer==NULL)){
 		return NULL;
 	}
-	char* ptr=buffer;
-	div_t result;
-	if(a==0){
-		ptr[0] = '0';
-		ptr[1] = '\0';
-		return buffer;
-	}
-	while(a){
-		result = div(a, radix);
-		*ptr = result.rem;
-		if(result.rem<10){
-			*ptr += '0';
+	unsigned length=(unsigned)-1;
+	uint8_t x;
+	char c;
+	do{
+		x = value%radix;
+		value /= radix;
+		if(x<10){
+			c = x+ '0';
 		}else{
-			*ptr += 'a'-10;
+			c = x+ 'a';
 		}
-		++ptr;
-		a = result.quot;
+		buffer[++length] = c;
+	}while(value);
+	buffer[length+1]='\0';
+	unsigned idx=0;
+	while(idx+1<length){
+		c = buffer[idx];
+		buffer[idx++] = buffer[length];
+		buffer[length--] = c;
 	}
-	*ptr = '\0';
-	str_reverse(buffer);
 	return buffer;
 }
 
-char* ulltoa(unsigned long long a, char* buffer, uint8_t radix){
-	if(radix<2 || radix>36){
+char* ulltoa(unsigned long long value, char* buffer, uint8_t radix){
+	if((radix>36) || (radix<2) || (buffer==NULL)){
 		return NULL;
 	}
-	char* ptr=buffer;
-	uint8_t rem;
-	if(a==0){
-		ptr[0] = '0';
-		ptr[1] = '\0';
-		return buffer;
-	}
-	while(a){
-		rem = a % radix;
-		a = a / radix;
-		*ptr = rem;
-		if(rem<10){
-			*ptr += '0';
+	unsigned length=(unsigned)-1;
+	uint8_t x;
+	char c;
+	do{
+		x = value%radix;
+		value /= radix;
+		if(x<10){
+			c = x+ '0';
 		}else{
-			*ptr += 'a'-10;
+			c = x+ 'a';
 		}
-		++ptr;
+		buffer[++length] = c;
+	}while(value);
+	buffer[length+1]='\0';
+	unsigned idx=0;
+	while(idx+1<length){
+		c = buffer[idx];
+		buffer[idx++] = buffer[length];
+		buffer[length--] = c;
 	}
-	*ptr = '\0';
-	str_reverse(buffer);
 	return buffer;
 }
 
-char* ustoa(unsigned short a, char* buffer, uint8_t radix){
-	return ultoa((unsigned long)a, buffer, radix);
+char* ustoa(unsigned short value, char* buffer, uint8_t radix){
+	if((radix>36) || (radix<2) || (buffer==NULL)){
+		return NULL;
+	}
+	unsigned length=(unsigned)-1;
+	uint8_t x;
+	char c;
+	do{
+		x = value%radix;
+		value /= radix;
+		if(x<10){
+			c = x+ '0';
+		}else{
+			c = x+ 'a';
+		}
+		buffer[++length] = c;
+	}while(value);
+	buffer[length+1]='\0';
+	unsigned idx=0;
+	while(idx+1<length){
+		c = buffer[idx];
+		buffer[idx++] = buffer[length];
+		buffer[length--] = c;
+	}
+	return buffer;
 }
 /*
 void strlwr(char* s){
