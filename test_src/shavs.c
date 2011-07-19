@@ -157,7 +157,7 @@ int32_t getLength(void){
 			if(*len2=='='){
 				do{
 					len2++;
-				}while(*len2 && !isdigit(*len2));
+				}while(*len2 && !isdigit((uint8_t)*len2));
 				len=(uint32_t)strtoul(len2, NULL, 10);
 				return len;
 			}
@@ -229,7 +229,7 @@ void shavs_test1(void){ /* KAT tests */
 		cli_putstr("\r\n");
 #endif
 		while((c=cli_getc_cecho())!='M' && c!='m'){
-			if(!isblank(c)){
+			if(!isblank((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (1) [0x");
 				cli_hexdump(&c, 1);
 				cli_putstr("]!\r\n");
@@ -248,7 +248,7 @@ void shavs_test1(void){ /* KAT tests */
 				return;
 		}
 		while((c=cli_getc_cecho())!='='){
-			if(!isblank(c)){
+			if(!isblank((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (4)!\r\n");
 				hfal_hash_free(&(shavs_ctx.ctx));
 				return;
@@ -336,7 +336,7 @@ void shavs_test2(void){ /* Monte Carlo tests for SHA-1 & SHA-2 */
 	uint8_t m[ml*4+8];
 	for(;;){
 		while((c=cli_getc_cecho())!='S' && c!='s'){
-			if(!isblank(c)){
+			if(!isblank((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (1) [0x");
 				cli_hexdump(&c, 1);
 				cli_putstr("]!\r\n");
@@ -356,7 +356,7 @@ void shavs_test2(void){ /* Monte Carlo tests for SHA-1 & SHA-2 */
 				return;
 		}
 		while((c=cli_getc_cecho())!='='){
-			if(!isblank(c)){
+			if(!isblank((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (5)!\r\n");
 				return;
 			}
@@ -421,7 +421,7 @@ void shavs_test3(void){ /* Monte Carlo tests for SHA-3 */
 	uint8_t m[ml+128];
 	for(;;){
 		while((c=cli_getc_cecho())!='S' && c!='s'){
-			if(!isblank(c)){
+			if(!isblank((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (1) [0x");
 				cli_hexdump(&c, 1);
 				cli_putstr("]!\r\n");
@@ -441,7 +441,7 @@ void shavs_test3(void){ /* Monte Carlo tests for SHA-3 */
 				return;
 		}
 		while((c=cli_getc_cecho())!='='){
-			if(!isblank(c)){
+			if(!isblank((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (5)!\r\n");
 				return;
 			}

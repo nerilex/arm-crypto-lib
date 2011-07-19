@@ -158,7 +158,7 @@ int32_t getValue(char* key){
 			if(*str2=='='){
 				do{
 					str2++;
-				}while(*str2 && !isdigit(*str2));
+				}while(*str2 && !isdigit((uint8_t)(*str2)));
 				val=(uint32_t)strtoul(str2, NULL, 10);
 				return val;
 			}
@@ -322,7 +322,7 @@ void cmacvs_test1(void){ /* Gen tests */
 		cli_putstr("\r\n");
 #endif
 		while((c=cli_getc_cecho())!='M' && c!='m'){
-			if(!isspace(c)){
+			if(!isspace((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (1) [0x");
 				cli_hexdump(&c, 1);
 				cli_putstr("]!\r\n");
@@ -341,7 +341,7 @@ void cmacvs_test1(void){ /* Gen tests */
 				return;
 		}
 		while((c=cli_getc_cecho())!='='){
-			if(!isspace(c)){
+			if(!isspace((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (4)!\r\n");
 				bcal_cmac_free(&(cmacvs_ctx.ctx));
 				return;
@@ -487,7 +487,7 @@ void cmacvs_test2(void){ /* Ver tests */
 		cli_putstr("\r\n");
 #endif
 		while((c=cli_getc_cecho())!='M' && c!='m'){
-			if(!isspace(c)){
+			if(!isspace((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (1) [0x");
 				cli_hexdump(&c, 1);
 				cli_putstr("]!\r\n");
@@ -506,7 +506,7 @@ void cmacvs_test2(void){ /* Ver tests */
 				return;
 		}
 		while((c=cli_getc_cecho())!='='){
-			if(!isspace(c)){
+			if(!isspace((uint8_t)c)){
 				cli_putstr("\r\nERROR: wrong input (4)!\r\n");
 				bcal_cmac_free(&(cmacvs_ctx.ctx));
 				return;

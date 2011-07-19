@@ -1,6 +1,6 @@
 /* cli.h */
 /*
-    This file is part of the ARM-Crypto-Lib.
+    This file is part of the AVR-Crypto-Lib.
     Copyright (C) 2008  Daniel Otte (daniel.otte@rub.de)
 
     This program is free software: you can redistribute it and/or modify
@@ -42,10 +42,10 @@ typedef struct {
 #define CLI_OPTION_MANP 0x02
 
 typedef struct {
-	const char*  cmd_name;      /* string containing the function name */
-	const char*  cmd_param_str; /* param descriptor string */
+	const char*        cmd_name;      /* string containing the function name */
+	const char*        cmd_param_str; /* param descriptor string */
 	void_fpt     cmd_function;  /* function pointer */
-	cmdoption_t* options;
+	const cmdoption_t* options;
 } cmdlist_entry_t;
 
 extern cli_rx_fpt cli_rx;
@@ -56,14 +56,12 @@ extern uint8_t cli_echo;
 void cli_putc(char c);
 uint16_t cli_getc(void);
 uint16_t cli_getc_cecho(void);
-uint8_t cli_getsn_cecho(char* s, uint32_t n);
 uint8_t cli_getsn(char* s, uint32_t n);
 void cli_putstr(const char* s);
 void cli_hexdump(const void* data, uint32_t length);
 void cli_hexdump_rev(const void* data, uint32_t length);
 void cli_hexdump2(const void* data, uint32_t length);
 void cli_hexdump_block(const void* data, uint32_t length, uint8_t indent, uint8_t width);
-void cli_hexdump_byte(uint8_t byte);
 
 void echo_ctrl(char* s);
 int8_t cmd_interface(const cmdlist_entry_t* cmd_desc);

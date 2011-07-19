@@ -1,7 +1,7 @@
 /* cli.c */
 /*
-    This file is part of the ARM-Crypto-Lib.
-    Copyright (C) 2006-2010  Daniel Otte (daniel.otte@rub.de)
+    This file is part of the AVR-Crypto-Lib.
+    Copyright (C) 2008  Daniel Otte (daniel.otte@rub.de)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ uint16_t cli_getc_cecho(void){
 }
 
 /**
- * \brief outputs a zero-terminated string from ram to the console
+ * \brief ouputs a zero-terminated string from ram to the console 
  */
 void cli_putstr(const char* s){
 	if(!cli_tx)
@@ -90,12 +90,13 @@ void cli_putstr(const char* s){
 		cli_tx(*s++);
 }
 
+
 /**
  * \brief reads a line or max n characters from the console
- * Writes characters from the console into the supplied buffer until a '\r'
- * character is received or until n character a read (whatever happens first).
+ * Writes characters from the console into the supplyed buffer until a '\r'
+ * character is recieved or until n character a read (whatever happens first).
  * The string will always be terminated by a '\0' character, so the buffer
- * should have at least a size of n+1.
+ * should have at least a size of n+1. 
  */
 uint8_t cli_getsn(char* s, uint32_t n){
 	char c;
@@ -106,22 +107,6 @@ uint8_t cli_getsn(char* s, uint32_t n){
 	}
 	*s='\0';
 	return (c=='\r')?0:1;
-}
-
-/**
- * \brief reads a line or max n characters from the console and echos the characters back
- * Writes characters from the console into the supplied buffer until a '\r'
- * character is received or until n character a read (whatever happens first).
- * The string will always be terminated by a '\0' character, so the buffer
- * should have at least a size of n+1.
- */
-uint8_t cli_getsn_cecho(char* s, uint32_t n){
-	uint8_t echo_backup,r ;
-	echo_backup = cli_echo;
-	cli_echo = 1;
-	r = cli_getsn(s, n);
-	cli_echo = echo_backup;
-	return r;
 }
 
 void cli_hexdump_byte(uint8_t byte){
@@ -257,7 +242,10 @@ typedef void(*str_fpt)(char*);
 
 static
 int8_t search_and_call(char* cmd, uint32_t maxcmdlength, const cmdlist_entry_t* cmdlist){
-	const cmdlist_entry_t* cmdlist_orig = cmdlist;
+	const cmdlist_entry_t* cmdlist_orig=cmdlist;
+	if(!cmdlist){
+		return 3;
+	}
 	if(*cmd=='\0' || *cmd=='#')
 		return 1;
 	if(!strcmp(cmd, "exit"))
@@ -271,15 +259,13 @@ int8_t search_and_call(char* cmd, uint32_t maxcmdlength, const cmdlist_entry_t* 
 	memcpy(fw, cmd, fwlength);
 	fw[fwlength] = '\0';
 	cmdlist_entry_t item;
-	do{
-		memcpy(&item, cmdlist, sizeof(cmdlist_entry_t));
-		cmdlist += 1;
-	}while(item.cmd_name!=NULL && strcmp(fw, item.cmd_name));
-	if(item.cmd_name==NULL){
+	while(cmdlist->cmd_name && strcmp(fw, cmdlist->cmd_name)){
+		++cmdlist;
+	}
+	if(!cmdlist->cmd_name){
 		cli_auto_help(maxcmdlength, cmdlist_orig);
 	} else {
-		if(item.cmd_function==NULL)
-			return 2;
+		memcpy(&item, cmdlist, sizeof(cmdlist_entry_t));
 		switch((uint32_t)item.cmd_param_str){
 			case 0:
 				item.cmd_function();
@@ -300,13 +286,13 @@ int8_t search_and_call(char* cmd, uint32_t maxcmdlength, const cmdlist_entry_t* 
 	return 1;	 
 }
 
-static const
+static
 uint16_t max_cmd_length(const cmdlist_entry_t* cmdlist){
 	uint16_t t,ret=0;
 	const char* str;
 	for(;;){
 		str = cmdlist->cmd_name;
-		cmdlist += 1;
+		++cmdlist;
 		if(str==NULL){
 			return ret;
 		}
@@ -331,7 +317,7 @@ uint8_t cli_completion(char* buffer, uint16_t maxcmdlength, const cmdlist_entry_
 		itemstr = cmdlist->cmd_name;
 		if(itemstr==NULL)
 			break;
-		cmdlist += 1;
+		++cmdlist;
 		if(!strncmp(buffer, itemstr, i)){
 			if(!ref[0]){
 				strcpy(ref, itemstr);

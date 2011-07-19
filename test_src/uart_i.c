@@ -212,7 +212,7 @@ uint8_t uart_init(uint8_t uartno, uint32_t baudrate, uint8_t databits, uint8_t p
 	}
 	/* uart interrupt enable */
 	HW_REG(uart_base[uartno]+UARTIM_OFFSET) |= _BV(UART_TXIM) | _BV(UART_RXIM);
-	HW_REG(ISR_ENABLE_VECTOR+uart_isr_vector[uartno]/32) |=
+	HW_REG(ISR_ENABLE_VECTOR+4*(uart_isr_vector[uartno]/32)) |=
 			_BV(uart_isr_vector[uartno]%32);
 
 	HW_REG(uart_base[uartno]+UARTCTL_OFFSET) |= _BV(UART_EOT);
@@ -265,13 +265,4 @@ uint32_t uart_dataavail(uint8_t uartno){
 		return 1;
 	}
 	return(HW_REG(uart_base[uartno]+UARTFR_OFFSET)&_BV(UART_RXFE))?0:1;
-}
-
-void uart_flush(uint8_t uartno){
-	if(uartno>UART_MAX){
-		return;
-	}
-	while(uart_tx_buffer[uartno].fillcount>0){
-		;
-	}
 }

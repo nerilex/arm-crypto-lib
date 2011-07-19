@@ -167,8 +167,7 @@ void nessie_print_header(const char* name,
 	if(ivsize_b){
 		if(ivsize_b==(uint16_t)-1){
 			cli_putstr("\r\nNo initial value (IV) mode");
-		}
-		{
+		}else{
 			cli_putstr("\r\nIV size: ");
 			ustoa(ivsize_b, str, 10);
 			cli_putstr(str);

@@ -1,6 +1,6 @@
 /* string-extras.h */
 /*
-    This file is part of the ARM-Crypto-Lib.
+    This file is part of the AVR-Crypto-Lib.
     Copyright (C) 2008  Daniel Otte (daniel.otte@rub.de)
 
     This program is free software: you can redistribute it and/or modify
@@ -58,8 +58,6 @@ char* strstrip(char* str);
 void str_reverse(char* buffer);
 
 char* ultoa(unsigned long a, char* buffer, uint8_t radix);
-
 char* ulltoa(unsigned long long a, char* buffer, uint8_t radix);
-
 char* ustoa(unsigned short a, char* buffer, uint8_t radix);
 // void strlwr(char* s);

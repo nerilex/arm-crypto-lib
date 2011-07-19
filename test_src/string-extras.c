@@ -1,7 +1,7 @@
 /* string_extras.c */
 /*
-    This file is part of the ARM-Crypto-Lib.
-    Copyright (C) 2006-2010  Daniel Otte (daniel.otte@rub.de)
+    This file is part of the AVR-Crypto-Lib.
+    Copyright (C) 2008  Daniel Otte (daniel.otte@rub.de)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <stdlib.h>
+
+#include "cli.h"
 
 uint32_t stridentcnt(const char* a, const char* b){
 	uint16_t i=0;
@@ -43,8 +44,13 @@ uint32_t stridentcnt(const char* a, const char* b){
 
 uint16_t firstword_length(const char* s){
 	uint16_t ret=0;
-	while(isgraph((uint8_t)(*s++)))
+	if(!s){
+		return 0;
+	}
+	int c;
+	while(c=*s++, isgraph(c)){
 		ret++;
+	}
 	return ret; 
 }
 
@@ -77,85 +83,65 @@ void str_reverse(char* buffer){
 		--j;
 	}
 }
-char* ultoa (unsigned long value, char* buffer, uint8_t radix ){
-	if((radix>36) || (radix<2) || (buffer==NULL)){
+
+char* ultoa(unsigned long a, char* buffer, uint8_t radix){
+	if(radix<2 || radix>36){
 		return NULL;
 	}
-	unsigned length=(unsigned)-1;
-	uint8_t x;
-	char c;
-	do{
-		x = value%radix;
-		value /= radix;
-		if(x<10){
-			c = x+ '0';
-		}else{
-			c = x+ 'a';
-		}
-		buffer[++length] = c;
-	}while(value);
-	buffer[length+1]='\0';
-	unsigned idx=0;
-	while(idx+1<length){
-		c = buffer[idx];
-		buffer[idx++] = buffer[length];
-		buffer[length--] = c;
+	char* ptr=buffer;
+	div_t result;
+	if(a==0){
+		ptr[0] = '0';
+		ptr[1] = '\0';
+		return buffer;
 	}
+	while(a){
+		result = div(a, radix);
+		*ptr = result.rem;
+		if(result.rem<10){
+			*ptr += '0';
+		}else{
+			*ptr += 'a'-10;
+		}
+		++ptr;
+		a = result.quot;
+	}
+	*ptr = '\0';
+	str_reverse(buffer);
 	return buffer;
 }
 
-char* ulltoa(unsigned long long value, char* buffer, uint8_t radix){
-	if((radix>36) || (radix<2) || (buffer==NULL)){
+
+char* ulltoa(unsigned long long a, char* buffer, uint8_t radix){
+	if(radix<2 || radix>36){
 		return NULL;
 	}
-	unsigned length=(unsigned)-1;
-	uint8_t x;
-	char c;
-	do{
-		x = value%radix;
-		value /= radix;
-		if(x<10){
-			c = x+ '0';
-		}else{
-			c = x+ 'a';
-		}
-		buffer[++length] = c;
-	}while(value);
-	buffer[length+1]='\0';
-	unsigned idx=0;
-	while(idx+1<length){
-		c = buffer[idx];
-		buffer[idx++] = buffer[length];
-		buffer[length--] = c;
+	char* ptr=buffer;
+	uint8_t rem;
+	unsigned long long quot;
+	if(a==0){
+		ptr[0] = '0';
+		ptr[1] = '\0';
+		return buffer;
 	}
+	while(a){
+		rem = a % radix;
+		quot = a / radix;
+		if(rem<10){
+			rem += '0';
+		}else{
+			rem += 'a'-10;
+		}
+		*ptr++ =rem;
+		a = quot;
+	}
+	*ptr = '\0';
+	str_reverse(buffer);
 	return buffer;
 }
 
-char* ustoa(unsigned short value, char* buffer, uint8_t radix){
-	if((radix>36) || (radix<2) || (buffer==NULL)){
-		return NULL;
-	}
-	unsigned length=(unsigned)-1;
-	uint8_t x;
-	char c;
-	do{
-		x = value%radix;
-		value /= radix;
-		if(x<10){
-			c = x+ '0';
-		}else{
-			c = x+ 'a';
-		}
-		buffer[++length] = c;
-	}while(value);
-	buffer[length+1]='\0';
-	unsigned idx=0;
-	while(idx+1<length){
-		c = buffer[idx];
-		buffer[idx++] = buffer[length];
-		buffer[length--] = c;
-	}
-	return buffer;
+char* ustoa(unsigned short a, char* buffer, uint8_t radix){
+	return ultoa((unsigned long)a, buffer, radix);
 }
 /*
 void strlwr(char* s){
