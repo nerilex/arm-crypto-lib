@@ -42,6 +42,7 @@
 #define DEBUG 0
 
 #if DEBUG
+#include "uart_lowlevel.h"
 //#  include "config.h"
 //#  include <util/delay.h>
 #endif
@@ -143,9 +144,26 @@ uint8_t buffer_add(char c){
 	return 0;
 }
 
+static
+uint32_t my_strtoul(const char* str){
+	uint32_t r=0;
+	while(*str && (*str<'0' || *str>'9')){
+		str++;
+	}
+	if(!*str){
+		return 0;
+	}
+	while(*str && (*str>='0' && *str<='9')){
+		r *= 10;
+		r += *str-'0';
+		str++;
+	}
+	return r;
+}
+
 int32_t getLength(void){
 	uint32_t len=0;
-	char lenstr[21];
+	char lenstr[25];
 	char* len2;
 	for(;;){
 		memset(lenstr, 0, 21);
@@ -158,7 +176,8 @@ int32_t getLength(void){
 				do{
 					len2++;
 				}while(*len2 && !isdigit((uint8_t)*len2));
-				len=(uint32_t)strtoul(len2, NULL, 10);
+				len = my_strtoul(len2);
+				//len=(uint32_t)strtoul(len2, NULL, 10);
 				return len;
 			}
 		} else {
@@ -189,13 +208,19 @@ void shavs_test1(void){ /* KAT tests */
 		shavs_ctx.blocks = 0;
 		memset(buffer, 0, shavs_ctx.buffersize_B);
 		length = getLength();
-		if(length<0){
+		if((int32_t)length<0){
+#if DEBUG
+			cli_putstr("\r\n(x) Len == ");
+			cli_hexdump_rev(&length, 4);
+			uart_flush(0);
+#endif
 			return;
 		}
 
 #if DEBUG
 		cli_putstr("\r\nLen == ");
 		cli_hexdump_rev(&length, 4);
+		uart_flush(0);
 #endif
 		if(length==0){
 			expect_input=2;

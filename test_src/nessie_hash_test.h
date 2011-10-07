@@ -31,7 +31,7 @@ typedef struct nessie_hash_ctx_st{
 	uint16_t hashsize_b;
 	uint16_t blocksize_B;
 	uint16_t ctx_size_B;
-	char* name; 
+	const char* name;
 	nessie_hash_init_fpt hash_init;
 	nessie_hash_next_fpt hash_next;
 	nessie_hash_last_fpt hash_last;

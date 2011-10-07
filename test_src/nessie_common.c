@@ -34,6 +34,7 @@
 #include "cli.h"
 #include "string-extras.h"
 
+
 #ifdef NESSIE_ALIVE
 void nessie_send_alive(void){
 	cli_putc(NESSIE_ALIVE_CHAR);
@@ -129,9 +130,10 @@ void nessie_print_header(const char* name,
 	uint16_t i;
 	cli_putstr("\r\n\r\n"
 	"********************************************************************************\r\n"
-	"* ARM-Crypto-Lib - crypto primitives for ARM microcontrolles by Daniel Otte    *\r\n"
+	"* ARM-Crypto-Lib - crypto primitives for ARM microcontrollers by Daniel Otte   *\r\n"
 	"********************************************************************************\r\n"
 	"\r\n");
+
 	cli_putstr("Primitive Name: ");
 	cli_putstr(name);
 	cli_putstr("\r\n");
@@ -139,7 +141,7 @@ void nessie_print_header(const char* name,
 	for(i=0; i<16+strlen(name); ++i){
 		cli_putc('=');
 	}
-	char str[6]; /* must catch numbers up to 65535 + terminatin \0 */
+	char str[6]; /* must catch numbers up to 65535 + terminating \0 */
 	if(keysize_b){
 		cli_putstr("\r\nKey size: ");
 		ustoa(keysize_b, str, 10);
@@ -158,6 +160,7 @@ void nessie_print_header(const char* name,
 		cli_putstr(str);
 		cli_putstr(" bits");
 	}
+
 	if(macsize_b){
 		cli_putstr("\r\nMac size: ");
 		ustoa(macsize_b, str, 10);
