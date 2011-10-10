@@ -22,7 +22,7 @@
 
 typedef struct {
 	uint32_t h[8];
-	uint64_t length;
+	uint32_t length;
 } sha2_small_common_ctx_t;
 
 void sha2_small_common_nextBlock(sha2_small_common_ctx_t* state, const void* block);

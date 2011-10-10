@@ -106,47 +106,39 @@ void sha2_small_common_nextBlock (sha2_small_common_ctx_t *state, const void* bl
 		for (i=0; i<8; ++i){
 			state->h[i] += a[i];
 		}
-		state->length += 512;
+		state->length += 1;
 }
 
 
 void sha2_small_common_lastBlock(sha2_small_common_ctx_t *state, const void* block, uint16_t length_b){
 	uint8_t lb[512/8]; /* local block */
-//	uint64_t len;
+	uint64_t len;
 	while(length_b>=512){
 		sha2_small_common_nextBlock(state, block);
 		length_b -= 512;
 		block = (uint8_t*)block+64;
 	}
-
-	state->length += length_b;
-	memcpy (&(lb[0]), block, length_b/8);
+	len = state->length*512 + length_b;
+	memset(lb, 0, 64);
+	memcpy(lb, block, (length_b+7)/8);
 
 	/* set the final one bit */
-	if (length_b & 0x7){ // if we have single bits at the end
-		lb[length_b/8] = ((uint8_t*)(block))[length_b/8];
-	} else {
-		lb[length_b/8] = 0;
-	}
 	lb[length_b/8] |= 0x80>>(length_b & 0x7);
-	length_b =(length_b >> 3) + 1; /* from now on length contains the number of BYTES in lb*/
 	/* pad with zeros */
-	if (length_b>64-8){ /* not enouth space for 64bit length value */
-		memset((void*)(&(lb[length_b])), 0, 64-length_b);
+	if (length_b>512-64){ /* not enouth space for 64bit length value */
 		sha2_small_common_nextBlock(state, lb);
-		state->length -= 512;
-		length_b = 0;
+		memset(lb, 0, 64);
 	}
-	memset((void*)(&(lb[length_b])), 0, 56-length_b);
 	/* store the 64bit length value */
 #if defined LITTLE_ENDIAN
 	 	/* this is now rolled up */
 	uint8_t i;
-	for (i=1; i<=8; ++i){
-		lb[55+i] = (uint8_t)(state->length>>(64- 8*i));
-	}
+	i=7;
+	do{
+		lb[63-i] = ((uint8_t*)&len)[i];
+	}while(i--);
 #elif defined BIG_ENDIAN
-	*((uint64_t)&(lb[56])) = state->length;
+	*((uint64_t)&(lb[56])) = len;
 #endif
 	sha2_small_common_nextBlock(state, lb);
 }
