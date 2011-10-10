@@ -21,15 +21,7 @@
  *
 */
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include "config.h"
-#include "cli.h"
-#include "dump.h"
-#include "uart_lowlevel.h"
-#include "sysclock.h"
-#include "hw_gptm.h"
+#include "main-test-common.h"
 
 #include "shavs.h"
 #include "nessie_hash_test.h"
@@ -40,14 +32,6 @@
 
 #include "sha256.h"
 #include "hfal_sha256.h"
-
-void uart0_putc(char byte){
-	uart_putc(UART_0, byte);
-}
-
-char uart0_getc(void){
-	return uart_getc(UART_0);
-}
 
 const char* algo_name = "SHA-256";
 
@@ -97,10 +81,10 @@ void test_monte(void){
      0x38, 0xF0, 0xDF, 0x70, 0x1D, 0xA9, 0x3C, 0x3B,
      0xF2, 0xC9, 0xC8, 0x68, 0x96, 0xE7, 0xE6, 0xC7 };
    uint8_t hash[SHA256_HASH_BYTES];
-   sha256((sha256_hash_t*)hash, data1, 3*32*8);
+   sha256(hash, data1, 3*32*8);
    cli_putstr("\r\n hash(data1) = ");
    cli_hexdump(hash, 32);
-   sha256((sha256_hash_t*)hash, data2, 3*32*8);
+   sha256(hash, data2, 3*32*8);
    cli_putstr("\r\n hash(data2) = ");
    cli_hexdump(hash, 32);
 }
@@ -125,7 +109,7 @@ void test_monte2(void){
 	0x39, 0xd8, 0x35, 0xa7, 0x24, 0xe2, 0xfa, 0xe7 };
 
    uint8_t hash[SHA256_HASH_BYTES];
-   sha256((sha256_hash_t*)hash, data, 1024);
+   sha256(hash, data, 1024);
    cli_putstr("\r\n hash(data) = ");
    cli_hexdump(hash, 32);
 }
@@ -164,26 +148,14 @@ const cmdlist_entry_t cmdlist[]  = {
 };
 
 int main(void) {
-	sysclk_set_freq(SYS_FREQ);
-	sysclk_mosc_verify_enable();
-    uart_init(UART_0, 115200, 8, UART_PARATY_NONE, UART_STOPBITS_ONE);
-    gptm_set_timer_32periodic(TIMER0);
-
-	cli_rx = uart0_getc;
-    cli_tx = uart0_putc;
+	main_setup();
 
 	shavs_algolist=(hfdesc_t**)algolist;
 	shavs_algo=(hfdesc_t*)&sha256_desc;
 
 	for(;;){
-		cli_putstr("\r\n\r\nARM-Crypto-Lib VS (");
-		cli_putstr(algo_name);
-		cli_putstr("; ");
-		cli_putstr(__DATE__);
-		cli_putc(' ');
-		cli_putstr(__TIME__);
-		cli_putstr(")\r\nloaded and running\r\n");
-    	cmd_interface(cmdlist);
+		welcome_msg(algo_name);
+		cmd_interface(cmdlist);
     }
 
 }

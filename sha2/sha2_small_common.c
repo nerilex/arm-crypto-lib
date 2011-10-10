@@ -1,7 +1,7 @@
-/* sha256.c */
+/* sha2_small_common.c */
 /*
     This file is part of the ARM-Crypto-Lib.
-    Copyright (C) 2006-2010  Daniel Otte (daniel.otte@rub.de)
+    Copyright (C) 2006-2011 Daniel Otte (daniel.otte@rub.de)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,54 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-/**
- * \file		sha256.c
- * \author		Daniel Otte
- * \date		16.05.2006
- *
- * \par License:
- * 	GPL
- *
- * \brief SHA-256 implementation.
- *
- *
- */
 
 #include <stdint.h>
-#include <string.h> /* for memcpy, memmove, memset */
-#include "sha256.h"
+#include <string.h>
+#include "sha2_small_common.h"
 
 #define LITTLE_ENDIAN
-
-#if defined LITTLE_ENDIAN
-#elif defined BIG_ENDIAN
-#else
-	#error specify endianess!!!
-#endif
-
-
-/*************************************************************************/
-
-const
-uint32_t sha256_init_vector[]={
-	0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
-    0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19 };
-
-
-/*************************************************************************/
-
-/**
- * \brief \c sh256_init initialises a sha256 context for hashing.
- * \c sh256_init c initialises the given sha256 context for hashing
- * @param state pointer to a sha256 context
- * @return none
- */
-void sha256_init(sha256_ctx_t *state){
-	state->length=0;
-	memcpy(state->h, sha256_init_vector, 8*4);
-}
-
-/*************************************************************************/
 
 /**
  * rotate x right by n positions
@@ -78,6 +36,7 @@ uint32_t rotl32( uint32_t x, uint8_t n){
 	return ((x<<n) | (x>>(32-n)));
 }
 
+
 /*************************************************************************/
 
 // #define CHANGE_ENDIAN32(x) (((x)<<24) | ((x)>>24) | (((x)& 0x0000ff00)<<8) | (((x)& 0x00ff0000)>>8))
@@ -86,8 +45,6 @@ uint32_t change_endian32(uint32_t x){
 	return (((x)<<24) | ((x)>>24) | (((x)& 0x0000ff00)<<8) | (((x)& 0x00ff0000)>>8));
 }
 
-
-/*************************************************************************/
 
 /* sha256 functions as macros for speed and size, cause they are called only once */
 
@@ -112,12 +69,11 @@ uint32_t k[]={
 };
 
 
-/*************************************************************************/
 
 /**
  * block must be, 512, Bit = 64, Byte, long !!!
  */
-void sha256_nextBlock (sha256_ctx_t *state, const void* block){
+void sha2_small_common_nextBlock (sha2_small_common_ctx_t *state, const void* block){
 	uint32_t w[64];	/* this is 256, byte, large, */
 	uint8_t  i;
 	uint32_t a[8],t1,t2;
@@ -154,43 +110,34 @@ void sha256_nextBlock (sha256_ctx_t *state, const void* block){
 }
 
 
-/*************************************************************************/
-
-/**
- * \brief function to process the last block being hashed
- * @param state Pointer to the context in which this block should be processed.
- * @param block Pointer to the message wich should be hashed.
- * @param length is the length of only THIS block in BITS not in bytes!
- *  bits are big endian, meaning high bits come first.
- * 	if you have a message with bits at the end, the byte must be padded with zeros
- */
-void sha256_lastBlock(sha256_ctx_t *state, const void* block, uint16_t length){
-	uint8_t lb[SHA256_BLOCK_BITS/8]; /* local block */
-	while(length>=SHA256_BLOCK_BITS){
-		sha256_nextBlock(state, block);
-		length -= SHA256_BLOCK_BITS;
-		block = (uint8_t*)block+SHA256_BLOCK_BYTES;
+void sha2_small_common_lastBlock(sha2_small_common_ctx_t *state, const void* block, uint16_t length_b){
+	uint8_t lb[512/8]; /* local block */
+//	uint64_t len;
+	while(length_b>=512){
+		sha2_small_common_nextBlock(state, block);
+		length_b -= 512;
+		block = (uint8_t*)block+64;
 	}
 
-	state->length += length;
-	memcpy (&(lb[0]), block, length/8);
+	state->length += length_b;
+	memcpy (&(lb[0]), block, length_b/8);
 
 	/* set the final one bit */
-	if (length & 0x7){ // if we have single bits at the end
-		lb[length/8] = ((uint8_t*)(block))[length/8];
+	if (length_b & 0x7){ // if we have single bits at the end
+		lb[length_b/8] = ((uint8_t*)(block))[length_b/8];
 	} else {
-		lb[length/8] = 0;
+		lb[length_b/8] = 0;
 	}
-	lb[length/8] |= 0x80>>(length & 0x7);
-	length =(length >> 3) + 1; /* from now on length contains the number of BYTES in lb*/
+	lb[length_b/8] |= 0x80>>(length_b & 0x7);
+	length_b =(length_b >> 3) + 1; /* from now on length contains the number of BYTES in lb*/
 	/* pad with zeros */
-	if (length>64-8){ /* not enouth space for 64bit length value */
-		memset((void*)(&(lb[length])), 0, 64-length);
-		sha256_nextBlock(state, lb);
+	if (length_b>64-8){ /* not enouth space for 64bit length value */
+		memset((void*)(&(lb[length_b])), 0, 64-length_b);
+		sha2_small_common_nextBlock(state, lb);
 		state->length -= 512;
-		length = 0;
+		length_b = 0;
 	}
-	memset((void*)(&(lb[length])), 0, 56-length);
+	memset((void*)(&(lb[length_b])), 0, 56-length_b);
 	/* store the 64bit length value */
 #if defined LITTLE_ENDIAN
 	 	/* this is now rolled up */
@@ -201,43 +148,6 @@ void sha256_lastBlock(sha256_ctx_t *state, const void* block, uint16_t length){
 #elif defined BIG_ENDIAN
 	*((uint64_t)&(lb[56])) = state->length;
 #endif
-	sha256_nextBlock(state, lb);
+	sha2_small_common_nextBlock(state, lb);
 }
-
-
-/*************************************************************************/
-
-/*
- * length in bits!
- */
-void sha256(sha256_hash_t *dest, const void* msg, uint32_t length){ /* length could be choosen longer but this is for µC */
-	sha256_ctx_t s;
-	sha256_init(&s);
-	while(length >= SHA256_BLOCK_BITS){
-		sha256_nextBlock(&s, msg);
-		msg = (uint8_t*)msg + SHA256_BLOCK_BITS/8;
-		length -= SHA256_BLOCK_BITS;
-	}
-	sha256_lastBlock(&s, msg, length);
-	sha256_ctx2hash(dest,&s);
-}
-
-
-
-/*************************************************************************/
-
-void sha256_ctx2hash(sha256_hash_t *dest, const sha256_ctx_t *state){
-#if defined LITTLE_ENDIAN
-	uint8_t i;
-	for(i=0; i<8; ++i){
-		((uint32_t*)dest)[i] = change_endian32(state->h[i]);
-	}
-#elif BIG_ENDIAN
-	if (dest != state->h)
-		memcpy(dest, state->h, SHA256_HASH_BITS/8);
-#else
-# error unsupported endian type!
-#endif
-}
-
 
