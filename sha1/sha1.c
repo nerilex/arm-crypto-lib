@@ -57,11 +57,12 @@ uint32_t rotl32(uint32_t n, uint8_t bits){
 	return ((n<<bits) | (n>>(32-bits)));
 }
 
+/*
 static const
 uint32_t change_endian32(uint32_t x){
 	return (((x)<<24) | ((x)>>24) | (((x)& 0x0000ff00)<<8) | (((x)& 0x00ff0000)>>8));
 }
-
+*/
 
 /* three SHA-1 inner functions */
 const
@@ -90,6 +91,18 @@ uint32_t parity(uint32_t x, uint32_t y, uint32_t z){
 
 typedef const uint32_t (*pf_t)(uint32_t x, uint32_t y, uint32_t z);
 
+static
+void load_endian32_changed(uint8_t* dest, uint8_t* src, uint16_t words){
+        while(words--){
+                *dest++ = src[3];
+                *dest++ = src[2];
+                *dest++ = src[1];
+                *dest++ = src[0];
+                src += 4;
+        }
+}
+
+
 void sha1_nextBlock (sha1_ctx_t *state, const void* block){
 	uint32_t a[5];
 	uint32_t w[16];
@@ -102,10 +115,7 @@ void sha1_nextBlock (sha1_ctx_t *state, const void* block){
 					0xca62c1d6};
 
 	/* load the w array (changing the endian and so) */
-	for(t=0; t<16; ++t){
-		w[t] = change_endian32(((uint32_t*)block)[t]);
-	}
-
+	load_endian32_changed((uint8_t*)w, (uint8_t*)block, 16);
 #if DEBUG
 	uint8_t dbgi;
 	for(dbgi=0; dbgi<16; ++dbgi){
@@ -185,10 +195,7 @@ void sha1_lastBlock(sha1_ctx_t *state, const void* block, uint16_t length){
 
 void sha1_ctx2hash (void *dest, sha1_ctx_t *state){
 #if defined LITTLE_ENDIAN
-	uint8_t i;
-	for(i=0; i<5; ++i){
-		((uint32_t*)dest)[i] = change_endian32(state->h[i]);
-	}
+	load_endian32_changed((uint8_t*)dest, (uint8_t*)state->h, 5);
 #elif BIG_ENDIAN
 	if (dest != state->h)
 		memcpy(dest, state->h, SHA1_HASH_BITS/8);
