@@ -1,6 +1,7 @@
-# Makefile for the ARM-Crypto-Lib project
+# vim:set ft=make
+# Makefile for the AVR-Crypto-Lib project
 #
-#    This file is part of the ARM-Crypto-Lib.
+#    This file is part of the AVR-Crypto-Lib.
 #    Copyright (C) 2010 Daniel Otte (daniel.otte@rub.de)
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,8 +17,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SHELL = sh
-
 BLOCK_CIPHERS  :=
 STREAM_CIPHERS :=
 HASHES         :=
@@ -27,20 +26,20 @@ ENCODINGS      :=
 SIGNATURE      :=
 PK_CIPHERS     :=
 AUX            :=
+
 LIB_ALGOS      :=
 
 # we use the gnu make standard library
 include gmsl
-include arm-makefile.inc
-
 
 GLOBAL_INCDIR := ./ $(TESTSRC_DIR)
 
 #-------------------------------------------------------------------------------
 # inclusion of make stubs
-
 include $(sort $(wildcard mkfiles/*.mk))
 
+#-------------------------------------------------------------------------------
+# define binary object in $(BIN_DIR)$(ALGO)/<obj>
 define Assert_Template
 $(1) = $(2)
 endef
@@ -101,9 +100,18 @@ $(foreach a, $(ALGORITHMS), $(eval $(call Assert_Template, \
 
 define TargetSource_Template
 $(1): $(2)
+	@mkdir -p  $(dir $(1)) $(DEP_DIR)
 	@echo "[cc]: $(1) <-- $(2)"
-	@mkdir -p $(dir $(1))
 	@$(CC) $(CFLAGS_A) $(addprefix -I./,$(3)) $(addprefix -D, $(4)) -c -o $(1) $(2)
+endef
+
+
+
+define TargetSourceList_Template
+$(1): $(2)
+	@mkdir -p $(dir $(1)) $(DEP_DIR)
+	@echo "[cc]: $(1) <-- $(2)"
+	@$(CC) $(CFLAGS_A) $(addprefix -I./,$(3)) $(addprefix -D, $(4)) $(LIST_OPT) -c -o /dev/null $(2) > $(1)
 endef
 
 # ----------------------------------------------------------------------------
@@ -127,7 +135,7 @@ $(foreach a, $(ALGORITHMS), \
       $(BIN_DIR)$(call lc, $(a))/$(b), \
       $(call find_source_file, $(b), $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR) ),\
       $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR), \
-      $($(a)_DEF) \
+      $($(a)_DEF), \
     )) \
   ) \
 )
@@ -143,6 +151,30 @@ $(foreach a, $(ALGORITHMS), \
   ) \
 )
 
+             
+$(foreach a, $(ALGORITHMS), \
+  $(foreach b, $($(a)_OBJ), \
+    $(eval $(call TargetSourceList_Template, \
+      $(LIST_DIR)$(call lc, $(a))/$(patsubst %.o,%.s,$(b)), \
+      $(call find_source_file, $(b), $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR) ),\
+      $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR), \
+      $($(a)_DEF), \
+    )) \
+  ) \
+)
+
+EXTRALINK_BINOBJ = $(patsubst %, $(BIN_DIR)%, $(EXTRALINK))
+
+$(foreach a, $(EXTRALINK), \
+  $(eval $(call TargetSource_Template, \
+    $(BIN_DIR)$(a), \
+    $(call find_source_file, $(a), $(GLOBAL_INCDIR) ),\
+    $($(a)_DIR) $($(a)_INCDIR) $(GLOBAL_INCDIR), \
+    $($(a)_DEF), \
+  )) \
+)
+
+
 $(foreach a, $(LIB_OBJECTS), \
   $(eval $(call TargetSource_Template, \
     $(a), \
@@ -156,20 +188,21 @@ $(foreach a, $(LIB_OBJECTS), \
 #-------------------------------------------------------------------------------
 
 define MainTestElf_Template
-$(1): $(2) $(3)
-	@echo "[ld]: $(1)"
+$(1): $(2) $(3) $(4)
 	@mkdir -p $(dir $(1))
+	@echo "[ld]: $(1)"
 	@$(CC) $(CFLAGS_A) $(LDFLAGS)$(patsubst %.elf,%.map,$(1)) -o \
 	$(1) \
-	$(2) $(3) \
-	$(addprefix -l, $(LIBS))
+	$(2) $(3) $(EXTRALINK_BINOBJ)\
+	$(addprefix -l,$(LIBS))
 endef
 
 $(foreach a, $(ALGORITHMS), \
     $(eval $(call MainTestElf_Template,  \
         $(BIN_DIR)$(call lc, $(a))/$(TEST_DIR)main-$(call lc, $(a))-test.elf, \
         $($(a)_BINOBJ), \
-        $($(a)_TESTBINOBJ) \
+        $($(a)_TESTBINOBJ), \
+        $(EXTRALINK_BINOBJ) \
 	)) \
 )
 
@@ -178,6 +211,20 @@ $(foreach a, $(ALGORITHMS), \
 all: $(foreach algo, $(ALGORITHMS), $($(algo)_BINOBJ))
 
 #-------------------------------------------------------------------------------
+
+define MakeDir_TEMPLATE
+$(1):
+	@echo [mkdir] $(1)
+	@mkdir -p $(1)
+endef
+
+$(foreach d, DEP_DIR BIN_DIR TESTSRC_DIR TESTLOG_DIR SPEEDLOG_DIR SIZE_DIR LIST_DIR STAT_DIR AUTOASM_DIR, $(eval $(call MakeDir_TEMPLATE, \
+   $($(d)) \
+)))
+
+$(foreach algo, $(ALGORITHMS), $(eval $(call MakeDir__TEMPLATE, \
+   $(BIN_DIR)$(call lc, $(algo))/$(TEST_DIR) \
+)))
 
 define TestBin_TEMPLATE
 $(1)_TESTBIN: $(2)
@@ -190,10 +237,20 @@ $(foreach algo, $(ALGORITHMS), $(eval $(call TestBin_TEMPLATE, \
 
 #-------------------------------------------------------------------------------
 
+define Listing_TEMPLATE
+$(1)_LIST: $(2)
+endef
+
+$(foreach algo, $(ALGORITHMS), $(eval $(call Listing_TEMPLATE, \
+    $(algo), \
+    $(foreach obj,$($(algo)_OBJ), $(LIST_DIR)$(call lc, $(algo))/$(obj:.o=.s)) \
+)))
+
+#-------------------------------------------------------------------------------
 %.bin: %.elf
 	@echo "[objcopy]: $@"
 	@$(OBJCOPY) -O binary $< $@
-	
+
 %.hex: %.elf
 	@echo "[objcopy]: $@"
 	@$(OBJCOPY) -j .text -j .data -O ihex $< $@
@@ -255,6 +312,10 @@ tests: $(foreach a, $(ALGORITHMS), $(a)_TESTBIN)
 
 define TestRun_Template
 $(1)_TESTRUN: $(1)_FLASH
+	@echo "[reset]"
+	@sleep 3
+	@$(RESETCMD)
+	@sleep 1
 	@echo "[test]: $(1)"
 	$(RUBY) $(GET_TEST) $(TESTPORT) $(TESTPORTBAUDR) 8 1 nessie $(TESTLOG_DIR)$(TESTPREFIX) $(2)
 endef
@@ -275,6 +336,13 @@ $(foreach algo, $(ALGORITHMS), \
         $($(algo)_BINOBJ)\
 	))\
 )
+
+.PHONY: all
+all: cores
+
+.PHONY: reset
+reset:
+	$(RESETCMD)
 
 .PHONY: cores
 cores: $(foreach algo, $(ALGORITHMS), $(algo)_OBJ)
@@ -300,9 +368,6 @@ encodings: $(foreach algo, $(ENCODINGS), $(algo)_OBJ)
 .PHONY: aux
 aux: $(foreach algo, $(AUX), $(algo)_OBJ)
 
-
-
-
 .PHONY: lib_info
 lib_info:
 	@echo "LIB_ALGOS ="
@@ -324,7 +389,6 @@ $(BIN_DIR)$(LIB_DIR)$(LIB_NAME): $(LIB_OBJECTS)
 
 .PHONY: lib
 lib: $(BIN_DIR)$(LIB_DIR)$(LIB_NAME)
-
 
 #-------------------------------------------------------------------------------
 
@@ -355,7 +419,6 @@ info:
 	@echo " targets:"
 	@echo "  all                - all algorithm cores"
 	@echo "  cores              - all algorithm cores"
-	@echo "  lib                - make library archive"
 	@echo "  listings           - all algorithm core listings"
 	@echo "  tests              - all algorithm test programs"
 	@echo "  stats              - all algorithm size statistics"
@@ -364,6 +427,7 @@ info:
 	@echo "  hashes             - all hash cores"
 	@echo "  macs               - all MAC cores"
 	@echo "  prngs              - all PRNG cores"
+	@echo "  lib                - create library
 	@echo "  all_testrun        - testrun all algorithms"
 	@echo "  hash_size          - measure size of all hash functions"
 	@echo "  hash_speed         - measure performance of all hash functions"
@@ -384,12 +448,12 @@ info:
 .PHONY: clean
 clean:
 	@echo "[rm]:  $(BIN_DIR)*"
-	@$(RM) -rf $(BIN_DIR)*
+	rm -rf $(BIN_DIR)*
 
 .PHONY: depclean
 depclean: clean
 	@echo "[rm]:  $(DEP_DIR)*.d"
-	@$(RM) -f $(DEP_DIR)*.d
+	rm -f $(DEP_DIR)*.d
 
 #-------------------------------------------------------------------------------
 # dependency inclusion
