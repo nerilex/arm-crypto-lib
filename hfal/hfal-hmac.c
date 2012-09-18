@@ -38,13 +38,13 @@ uint8_t hfal_hmac_init(const hfdesc_t* hash_descriptor,
 	ctx->desc   = hash_descriptor;
 	ctx->ctx    = malloc(hash_descriptor->ctxsize_B);
 	ctx->finctx = malloc(hash_descriptor->ctxsize_B);
-	if(ctx->ctx==NULL && ctx->finctx==NULL)
+	if(ctx->ctx == NULL && ctx->finctx == NULL)
 		return 3;
-	if(ctx->finctx==NULL){
+	if(ctx->finctx == NULL){
 		free(ctx->ctx);
 		return 2;
 	}
-	if(ctx->ctx==NULL){
+	if(ctx->ctx == NULL){
 		free(ctx->finctx);
 		return 1;
 	}		
