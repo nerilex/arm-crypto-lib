@@ -90,8 +90,8 @@ typedef struct {
 
 typedef struct{
 	bcdesc_t* desc_ptr;
-	uint16_t  keysize;
 	void*     ctx;
+	uint16_t  keysize;
 } bcgen_ctx_t;
 
 #endif /* BLOCKCIPHER_DESCRIPTOR_H_ */
