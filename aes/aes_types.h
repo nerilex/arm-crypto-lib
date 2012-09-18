@@ -46,7 +46,7 @@ typedef struct __attribute__((packed)){
 } aes256_ctx_t;
 
 typedef struct __attribute__((packed)){
-	aes_roundkey_t key[1]; /* just to avoid the warning */
+	aes_roundkey_t key[15]; /* just to avoid the warning */
 } aes_genctx_t;
 
 typedef struct __attribute__((packed)){
