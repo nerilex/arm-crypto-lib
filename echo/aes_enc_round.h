@@ -20,11 +20,11 @@
 #ifndef AES_ENC_ROUND_H_
 #define AES_ENC_ROUND_H_
 
-typedef struct{
+typedef struct __attribute__((packed)) {
 	uint8_t s[16];
 } aes_cipher_state_t;
 
-typedef struct{
+typedef struct __attribute__((packed)) {
 	uint8_t ks[16];
 } aes_roundkey_t;
 
