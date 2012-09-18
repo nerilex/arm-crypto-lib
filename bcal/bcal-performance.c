@@ -135,7 +135,7 @@ void bcal_performance(const bcdesc_t* bcd){
 }
 
 
-void bcal_performance_multiple(const bcdesc_t** bcd_list){
+void bcal_performance_multiple(const bcdesc_t* const * bcd_list){
 	const bcdesc_t* bcd;
 	for(;;){
 		bcd = *bcd_list;
