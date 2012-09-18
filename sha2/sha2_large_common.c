@@ -46,7 +46,6 @@ uint64_t sha2_large_common_const[80] = {
 0x4cc5d4becb3e42b6LL, 0x597f299cfc657e2aLL, 0x5fcb6fab3ad6faecLL, 0x6c44198c4a475817LL
 };
 
-
 static const
 uint64_t change_endian64(uint64_t x){
 	uint64_t r=0;
@@ -58,8 +57,6 @@ uint64_t change_endian64(uint64_t x){
 	}while(--i);
 	return r;
 }
-
-
 
 static const
 uint64_t rotr64(uint64_t x, uint8_t n){
@@ -78,17 +75,26 @@ uint64_t rotl64(uint64_t x, uint8_t n){
 #define SIGMA_a(x) (rotr64((x),  1) ^ rotr64((x),  8) ^ ((x)>>7))
 #define SIGMA_b(x) (rotr64((x), 19) ^ rotl64((x),  3) ^ ((x)>>6))
 
+static
+void load_endian64_changed(uint8_t* dest, uint8_t* src, uint16_t words){
+	uint8_t i;
+	while(words--){
+		i = 7;
+		do{
+			*dest++ = src[i];
+		}while(i--);
+		src += 8;
+	}
+}
+
 void sha2_large_common_nextBlock(sha2_large_common_ctx_t* ctx, const void* block){
 	uint64_t w[16], wx;
 	uint64_t a[8];
 	uint64_t t1, t2;
 	const uint64_t *k=sha2_large_common_const;
 	uint8_t i;
-	i=16;
-	do{
-		w[16-i] = change_endian64(*((const uint64_t*)block));
-		block = (uint8_t*)block + 8;
-	}while(--i);
+
+	load_endian64_changed((uint8_t*)w, (uint8_t*)block, 16);
 	memcpy(a, ctx->h, 8*8);
 	for(i=0; i<80; ++i){
 		if(i<16){

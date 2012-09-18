@@ -40,11 +40,12 @@ uint32_t rotl32( uint32_t x, uint8_t n){
 /*************************************************************************/
 
 // #define CHANGE_ENDIAN32(x) (((x)<<24) | ((x)>>24) | (((x)& 0x0000ff00)<<8) | (((x)& 0x00ff0000)>>8))
+/*
 static
 uint32_t change_endian32(uint32_t x){
 	return (((x)<<24) | ((x)>>24) | (((x)& 0x0000ff00)<<8) | (((x)& 0x00ff0000)>>8));
 }
-
+*/
 
 /* sha256 functions as macros for speed and size, cause they are called only once */
 
@@ -68,7 +69,16 @@ uint32_t k[]={
 	0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-
+static
+void load_endian32_changed(uint8_t* dest, uint8_t* src, uint16_t words){
+	while(words--){
+		*dest++ = src[3];
+		*dest++ = src[2];
+		*dest++ = src[1];
+		*dest++ = src[0];
+		src += 4;
+	}
+}
 
 /**
  * block must be, 512, Bit = 64, Byte, long !!!
@@ -80,9 +90,7 @@ void sha2_small_common_nextBlock (sha2_small_common_ctx_t *state, const void* bl
 
 	/* init w */
 #if defined LITTLE_ENDIAN
-	for (i=0; i<16; ++i){
-		w[i]= change_endian32(((uint32_t*)block)[i]);
-	}
+	load_endian32_changed((uint8_t*)w, (uint8_t*)block, 16);
 #elif defined BIG_ENDIAN
 		memcpy((void*)w, block, 64);
 #endif
