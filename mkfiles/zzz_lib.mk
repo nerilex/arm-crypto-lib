@@ -12,6 +12,7 @@ LIB_ALGOS:= \
     DES \
     DSA \
     ECHO_C \
+    ENTROPIUM \
     GRAIN \
     GROESTL_C \
     JH_SIMPLE_SMALL_C \
