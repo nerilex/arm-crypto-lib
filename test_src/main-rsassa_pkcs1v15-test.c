@@ -312,7 +312,7 @@ uint8_t read_bigint(bigint_t* a, char* prompt){
 		return 1;
 	}
 	a->wordv = (bigint_word_t*)buffer;
-	a->length_B = (read_length + sizeof(bigint_word_t) - 1) / sizeof(bigint_word_t);
+	a->length_W = (read_length + sizeof(bigint_word_t) - 1) / sizeof(bigint_word_t);
 	a->info = 0;
 	bigint_changeendianess(a);
 	bigint_adjust(a);
@@ -382,9 +382,9 @@ uint8_t read_key_conv(void){
 
 void load_priv_conventional(void){
 	priv_key.components = malloc(sizeof(bigint_t));
-	priv_key.components[0].length_B = (sizeof(PRIV_EXPONENT) +
+	priv_key.components[0].length_W = (sizeof(PRIV_EXPONENT) +
 			sizeof(bigint_word_t) - 1) / sizeof(bigint_word_t);
-	priv_key.components[0].wordv =  malloc(priv_key.components[0].length_B *
+	priv_key.components[0].wordv =  malloc(priv_key.components[0].length_W *
 			sizeof(bigint_word_t));
 	if(!priv_key.components[0].wordv){
 		cli_putstr("\r\nERROR: OOM!");
@@ -411,8 +411,8 @@ void load_priv_crt_mono(void){
 	priv_key.n = 5;
 	for(i=0; i<5; ++i){
 		v[i].info = 0;
-		v[i].length_B = (sv[i] + sizeof(bigint_word_t) - 1) / sizeof(bigint_word_t);
-		v[i].wordv = calloc(v[i].length_B , sizeof(bigint_word_t));
+		v[i].length_W = (sv[i] + sizeof(bigint_word_t) - 1) / sizeof(bigint_word_t);
+		v[i].wordv = calloc(v[i].length_W , sizeof(bigint_word_t));
 		if(!v[i].wordv){
 			cli_putstr("\r\nERROR: OOM!");
 			return;
@@ -424,7 +424,7 @@ void load_priv_crt_mono(void){
 }
 
 uint8_t load_bigint_from_os(bigint_t* a, const void* os, uint16_t length_B){
-	a->length_B = BIGINT_CEIL(length_B) / sizeof(bigint_word_t);
+	a->length_W = BIGINT_CEIL(length_B) / sizeof(bigint_word_t);
 	a->wordv = malloc(BIGINT_CEIL(length_B));
 	if(!a->wordv){
 		cli_putstr("\r\nOOM!\r\n");
@@ -471,7 +471,7 @@ void quick_test(void){
 	}
 	msg = malloc(sizeof(MSG));
 	memcpy(msg, MSG, sizeof(MSG));
-	sign = malloc(pub_key.modulus.length_B * sizeof(bigint_word_t));
+	sign = malloc(pub_key.modulus.length_W * sizeof(bigint_word_t));
 	cli_putstr("\r\nhashing:...");
 	sha1(hash, msg, sizeof(MSG) * 8);
 	cli_putstr("\r\nsigning: ...");
