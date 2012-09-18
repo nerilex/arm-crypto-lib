@@ -87,14 +87,14 @@ void sha1_ctx_dump(sha1_ctx_t *s){
 }
 
 void testrun_sha1(void){
-	sha1_hash_t hash;
-	sha1(&hash,"abc",3*8);
+	uint8_t hash[20];
+	sha1(hash,"abc",3*8);
 	cli_putstr("\r\nsha1(\"abc\") = \r\n\t");
-	cli_hexdump(hash,SHA1_HASH_BITS/8);
+	cli_hexdump(hash, SHA1_HASH_BITS/8);
 
-	sha1(&hash,"\0\0\0\0\0\0\0\0", 8*8);
+	sha1(hash,"\0\0\0\0\0\0\0\0", 8*8);
 	cli_putstr("\r\nsha1(8 x 0x00) = \r\n\t");
-	cli_hexdump(hash,SHA1_HASH_BITS/8);
+	cli_hexdump(hash, SHA1_HASH_BITS/8);
 /*
    Len = 496
    Msg = 46fe5ed326c8fe376fcc92dc9e2714e2240d3253b105ad
@@ -102,7 +102,7 @@ void testrun_sha1(void){
          e1bece548fa4833c04065fe593f6fb10
    MD  = f220a7457f4588d639dc21407c942e9843f8e26b
 */
-	sha1(&hash,"\x46\xfe\x5e\xd3\x26\xc8\xfe\x37"
+	sha1( hash,"\x46\xfe\x5e\xd3\x26\xc8\xfe\x37"
 	           "\x6f\xcc\x92\xdc\x9e\x27\x14\xe2"
 	           "\x24\x0d\x32\x53\xb1\x05\xad\xfb"
 	           "\xb2\x56\xff\x7a\x19\xbc\x40\x97"
@@ -111,9 +111,9 @@ void testrun_sha1(void){
 	           "\xce\x54\x8f\xa4\x83\x3c\x04\x06"
 	           "\x5f\xe5\x93\xf6\xfb\x10", 496);
 	cli_putstr("\r\nsha1(tv_496) = \r\n\t");
-	cli_hexdump(hash,SHA1_HASH_BITS/8);
+	cli_hexdump(hash, SHA1_HASH_BITS/8);
 
-	sha1(&hash,"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",448);
+	sha1(hash, "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",448);
 //	cli_putstr_P(PSTR("\r\nsha1(\"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq\") = \r\n\t"));
 	cli_hexdump(hash,SHA1_HASH_BITS/8);
 	cli_putstr("\r\nsha1(1,000,000 * 'a') = \r\n\t");
@@ -136,8 +136,8 @@ void testrun_sha1(void){
 
 void testrun_sha1_2(void){
 	sha1_ctx_t ctx;
-	sha1_hash_t hash;
-	sha1(&hash,"",0);
+	uint8_t hash[20];
+	sha1(hash,"",0);
 	cli_putstr("\r\nsha1(NULL) = \r\n\t");
 	cli_hexdump(hash,SHA1_HASH_BYTES);
 
@@ -147,7 +147,7 @@ void testrun_sha1_2(void){
 	sha1_lastBlock(&ctx, "", 0);
 	sha1_ctx2hash(&hash, &ctx);
 	cli_putstr("\r\nsha1(NULL) = \r\n\t");
-	cli_hexdump(hash,SHA1_HASH_BYTES);
+	cli_hexdump(hash, SHA1_HASH_BYTES);
 }
 
 /*
@@ -169,12 +169,12 @@ void testrun_sha1_506(void){
 		0x72, 0x22, 0x46, 0xb0, 0x14, 0xaf, 0x03, 0xef,
 		0x3b, 0xa3, 0x13, 0x64, 0xfc, 0x73, 0x2a, 0x4a,
 		0xb8, 0xf3, 0x85, 0x87 };
-	sha1_hash_t hash;
-	sha1(&hash,data,506);
+	uint8_t hash[20];
+	sha1(hash, data, 506);
 	cli_putstr("\r\nsha1(<tv506>) = \r\n\t");
-	cli_hexdump(hash,SHA1_HASH_BYTES);
+	cli_hexdump(hash, SHA1_HASH_BYTES);
 	cli_putstr("\r\nshould        = \r\n\t");
-	cli_hexdump(ref,SHA1_HASH_BYTES);
+	cli_hexdump(ref, SHA1_HASH_BYTES);
 	if(memcmp(ref, hash, SHA1_HASH_BYTES)==0){
 		cli_putstr("\r\n[ok]");
 	} else {
