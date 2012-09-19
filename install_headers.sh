@@ -9,6 +9,10 @@ OWNER="root"
 GROUP="root"
 MODE="644"
 
+if [ ! -d header_tmp ]; then
+  mkdir header_tmp
+fi
+
 for i in `cat $SRC_FILE`; do
   x=`echo $i | sed 's#^.*/##g'`
   sed -f header_install_modifier.sed "${i}" > "header_tmp/${x}"
