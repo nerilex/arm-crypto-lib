@@ -101,7 +101,7 @@ $(foreach a, $(ALGORITHMS), $(eval $(call Assert_Template, \
 define TargetSource_Template
 $(1): $(2)
 	@mkdir -p  $(dir $(1)) $(DEP_DIR)
-	@echo "[cc]: $(1) <-- $(2)"
+	@echo '[cc]: $(1) <-- $(2)'
 	@$(CC) $(CFLAGS_A) $(addprefix -I./,$(3)) $(addprefix -D, $(4)) -c -o $(1) $(2)
 endef
 
@@ -110,7 +110,7 @@ endef
 define TargetSourceList_Template
 $(1): $(2)
 	@mkdir -p $(dir $(1)) $(DEP_DIR)
-	@echo "[cc]: $(1) <-- $(2)"
+	@echo '[cc]: $(1) <-- $(2)'
 	@$(CC) $(CFLAGS_A) $(addprefix -I./,$(3)) $(addprefix -D, $(4)) $(LIST_OPT) -c -o /dev/null $(2) > $(1)
 endef
 
@@ -190,7 +190,7 @@ $(foreach a, $(LIB_OBJECTS), \
 define MainTestElf_Template
 $(1): $(2) $(3) $(4)
 	@mkdir -p $(dir $(1))
-	@echo "[ld]: $(1)"
+	@echo '[ld]: $(1)'
 	@$(CC) $(CFLAGS_A) $(LDFLAGS)$(patsubst %.elf,%.map,$(1)) -o \
 	$(1) \
 	$(2) $(3) $(EXTRALINK_BINOBJ)\
@@ -248,18 +248,18 @@ $(foreach algo, $(ALGORITHMS), $(eval $(call Listing_TEMPLATE, \
 
 #-------------------------------------------------------------------------------
 %.bin: %.elf
-	@echo "[objcopy]: $@"
+	@echo '[objcopy]: $@'
 	@$(OBJCOPY) -O binary $< $@
 
 %.hex: %.elf
-	@echo "[objcopy]: $@"
+	@echo '[objcopy]: $@'
 	@$(OBJCOPY) -j .text -j .data -O ihex $< $@
 
 #-------------------------------------------------------------------------------
 
 define Flash_Template
 $(1)_FLASH: $(2)
-	@echo "[flash]: $(2)"
+	@echo '[flash]: $(2)'
 	@$(call FLASHCMD, $(call first,$(2)))
 endef
 
@@ -289,7 +289,7 @@ blockcipher_speed: $(foreach algo, $(BLOCK_CIPHERS), $(algo)_SPEED)
 
 define Size_Template
 $(1)_SIZE:  $(2)
-	@echo "[size] $(1)"
+	@echo '[size] $(1)'
 	$(SIZE) $(2) > $(strip $(SIZE_DIR))$(strip $(call lc, $(1))).size
 endef
 
@@ -312,11 +312,11 @@ tests: $(foreach a, $(ALGORITHMS), $(a)_TESTBIN)
 
 define TestRun_Template
 $(1)_TESTRUN: $(1)_FLASH
-	@echo "[reset]"
+	@echo '[reset]'
 	@sleep 3
 	@$(RESETCMD)
 	@sleep 1
-	@echo "[test]: $(1)"
+	@echo '[test]: $(1)'
 	$(RUBY) $(GET_TEST) $(TESTPORT) $(TESTPORTBAUDR) 8 1 nessie $(TESTLOG_DIR)$(TESTPREFIX) $(2)
 endef
 
@@ -370,21 +370,21 @@ aux: $(foreach algo, $(AUX), $(algo)_OBJ)
 
 .PHONY: lib_info
 lib_info:
-	@echo "LIB_ALGOS ="
+	@echo 'LIB_ALGOS ='
 	@echo  $(foreach a, $(LIB_ALGOS), '\t$(a)\n')
-	@echo "LIB_OBJECTS ="
+	@echo 'LIB_OBJECTS ='
 	@echo  $(foreach a, $(LIB_OBJECTS), '\t$(a)\n')
-	@echo "LIB_SRCDIRS ="
+	@echo 'LIB_SRCDIRS ='
 	@echo  $(foreach a, $(LIB_SRCDIRS), '\t$(a)\n')
 
 $(BIN_DIR)$(LIB_DIR)$(LIB_NAME): $(LIB_OBJECTS)
-	@echo "[rm]:  old $@"
+	@echo '[rm]:  old $@'
 	@$(RM) -f $@
-	@echo "[chmod]: <objects>"
+	@echo '[chmod]: <objects>'
 	@$(CHMOD) 644 $^
 #	$(CHGRP) root $^
 #	$(CHOWN) root $^
-	@echo "[ar]:  $@ <-- <objects>"
+	@echo '[ar]:  $@ <-- <objects>'
 	@$(AR) qc $@ $^
 
 .PHONY: lib
@@ -397,62 +397,62 @@ lib: $(BIN_DIR)$(LIB_DIR)$(LIB_NAME)
 help: info
 .PHONY: info
 info:
-	@echo "infos on ARM-Crypto-lib:"
-	@echo "  block ciphers:"
-	@echo "    $(BLOCK_CIPHERS)"
-	@echo "  stream ciphers:"
-	@echo "    $(STREAM_CIPHERS)"
-	@echo "  hash functions:"
-	@echo "    $(HASHES)"
-	@echo "  MAC functions:"
-	@echo "    $(MACS)"
-	@echo "  PRNG functions:"
-	@echo "    $(PRNGS)"
-	@echo "  signature functions:"
-	@echo "    $(SIGNATURE)"
-	@echo "  public key ciphers:"
-	@echo "    $(PK_CIPHERS)"
-	@echo "  encodings:"
-	@echo "    $(ENCODINGS)"
-	@echo "  auxiliary functions:"
-	@echo "    $(AUX)"
-	@echo " targets:"
-	@echo "  all                - all algorithm cores"
-	@echo "  cores              - all algorithm cores"
-	@echo "  listings           - all algorithm core listings"
-	@echo "  tests              - all algorithm test programs"
-	@echo "  stats              - all algorithm size statistics"
-	@echo "  blockciphers       - all blockcipher cores"
-	@echo "  streamciphers      - all streamcipher cores"
-	@echo "  hashes             - all hash cores"
-	@echo "  macs               - all MAC cores"
-	@echo "  prngs              - all PRNG cores"
-	@echo "  lib                - create library
-	@echo "  all_testrun        - testrun all algorithms"
-	@echo "  hash_size          - measure size of all hash functions"
-	@echo "  hash_speed         - measure performance of all hash functions"
-	@echo "  blockcipher_size   - measure size of all blockciphers"
-	@echo "  blockcipher_speed  - measure performance of all blockciphers"
-	@echo "  docu               - build doxygen documentation"
-	@echo "  clean              - remove a lot of builded files"
-	@echo "  depclean           - also remove dependency files"
-	@echo "  *_TESTBIN          - build test program"
-	@echo "  *_TESTRUN          - run nessie test"
-	@echo "  *_OBJ              - build algorithm core"
-	@echo "  *_FLASH            - flash test program"
-	@echo "  *_LIST             - build assembler listing"
+	@echo 'infos on ARM-Crypto-lib:'
+	@echo '  block ciphers:'
+	@echo '    $(BLOCK_CIPHERS)'
+	@echo '  stream ciphers:'
+	@echo '    $(STREAM_CIPHERS)'
+	@echo '  hash functions:'
+	@echo '    $(HASHES)'
+	@echo '  MAC functions:'
+	@echo '    $(MACS)'
+	@echo '  PRNG functions:'
+	@echo '    $(PRNGS)'
+	@echo '  signature functions:'
+	@echo '    $(SIGNATURE)'
+	@echo '  public key ciphers:'
+	@echo '    $(PK_CIPHERS)'
+	@echo '  encodings:'
+	@echo '    $(ENCODINGS)'
+	@echo '  auxiliary functions:'
+	@echo '    $(AUX)'
+	@echo ' targets:'
+	@echo '  all                - all algorithm cores'
+	@echo '  cores              - all algorithm cores'
+	@echo '  listings           - all algorithm core listings'
+	@echo '  tests              - all algorithm test programs'
+	@echo '  stats              - all algorithm size statistics'
+	@echo '  blockciphers       - all blockcipher cores'
+	@echo '  streamciphers      - all streamcipher cores'
+	@echo '  hashes             - all hash cores'
+	@echo '  macs               - all MAC cores'
+	@echo '  prngs              - all PRNG cores'
+	@echo '  lib                - create library
+	@echo '  all_testrun        - testrun all algorithms'
+	@echo '  hash_size          - measure size of all hash functions'
+	@echo '  hash_speed         - measure performance of all hash functions'
+	@echo '  blockcipher_size   - measure size of all blockciphers'
+	@echo '  blockcipher_speed  - measure performance of all blockciphers'
+	@echo '  docu               - build doxygen documentation'
+	@echo '  clean              - remove a lot of builded files'
+	@echo '  depclean           - also remove dependency files'
+	@echo '  *_TESTBIN          - build test program'
+	@echo '  *_TESTRUN          - run nessie test'
+	@echo '  *_OBJ              - build algorithm core'
+	@echo '  *_FLASH            - flash test program'
+	@echo '  *_LIST             - build assembler listing'
 
 
 #-------------------------------------------------------------------------------
 
 .PHONY: clean
 clean:
-	@echo "[rm]:  $(BIN_DIR)*"
+	@echo '[rm]:  $(BIN_DIR)*'
 	rm -rf $(BIN_DIR)*
 
 .PHONY: depclean
 depclean: clean
-	@echo "[rm]:  $(DEP_DIR)*.d"
+	@echo '[rm]:  $(DEP_DIR)*.d'
 	rm -f $(DEP_DIR)*.d
 
 #-------------------------------------------------------------------------------
