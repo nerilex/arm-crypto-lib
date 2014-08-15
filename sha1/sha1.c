@@ -93,6 +93,7 @@ typedef const uint32_t (*pf_t)(uint32_t x, uint32_t y, uint32_t z);
 
 static
 void load_endian32_changed(uint8_t* dest, uint8_t* src, uint16_t words){
+#if defined LITTLE_ENDIAN
         while(words--){
                 *dest++ = src[3];
                 *dest++ = src[2];
@@ -100,6 +101,9 @@ void load_endian32_changed(uint8_t* dest, uint8_t* src, uint16_t words){
                 *dest++ = src[0];
                 src += 4;
         }
+#elif defined BIG_ENDIAN
+      memcpy(dest, src, words * sizeof(uint32_t));
+#endif
 }
 
 
@@ -113,9 +117,9 @@ void sha1_nextBlock (sha1_ctx_t *state, const void* block){
 					0x6ed9eba1,
 					0x8f1bbcdc,
 					0xca62c1d6};
-
 	/* load the w array (changing the endian and so) */
 	load_endian32_changed((uint8_t*)w, (uint8_t*)block, 16);
+
 #if DEBUG
 	uint8_t dbgi;
 	for(dbgi=0; dbgi<16; ++dbgi){
@@ -186,7 +190,7 @@ void sha1_lastBlock(sha1_ctx_t *state, const void* block, uint16_t length){
 		lb[56+i] = ((uint8_t*)&(state->length))[7-i];
 	}
 #elif defined BIG_ENDIAN
-	*((uint64_t)&(lb[56])) = state->length;
+	*((uint64_t*)&(lb[56])) = state->length;
 #endif
 	sha1_nextBlock(state, lb);
 }
@@ -196,9 +200,10 @@ void sha1_lastBlock(sha1_ctx_t *state, const void* block, uint16_t length){
 void sha1_ctx2hash (void *dest, sha1_ctx_t *state){
 #if defined LITTLE_ENDIAN
 	load_endian32_changed((uint8_t*)dest, (uint8_t*)state->h, 5);
-#elif BIG_ENDIAN
-	if (dest != state->h)
+#elif defined BIG_ENDIAN
+	if (dest != state->h) {
 		memcpy(dest, state->h, SHA1_HASH_BITS/8);
+	}
 #else
 # error unsupported endian type!
 #endif
